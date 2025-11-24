@@ -17,12 +17,12 @@
         <dependency>
             <groupId>org.openjfx</groupId>
             <artifactId>javafx-controls</artifactId>
-            <version>18.0.2</version>
+            <version>21.0.6</version>
         </dependency>
         <dependency>
             <groupId>org.openjfx</groupId>
             <artifactId>javafx-fxml</artifactId>
-            <version>18.0.2</version>
+            <version>21.0.6</version>
         </dependency>
     </dependencies>
 
@@ -45,7 +45,7 @@
                     <execution>
                         <id>default-cli</id>
                         <configuration>
-                            <mainClass>com.example/com.example.Main</mainClass>
+                            <mainClass>com.example.Main</mainClass>
                         </configuration>
                     </execution>
                 </executions>
