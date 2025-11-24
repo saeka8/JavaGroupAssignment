@@ -1,0 +1,178 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
+
+<BorderPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="com.example.quizapp.ui.HomeController">
+
+    <top>
+        <HBox spacing="20" alignment="CENTER_LEFT"
+              style="-fx-background-color: #2B3A67; -fx-padding: 12 24 12 24;">
+            <children>
+                <Label text="Quiz Platform" textFill="white">
+                    <font>
+                        <Font name="System Bold" size="22"/>
+                    </font>
+                </Label>
+
+                <Pane HBox.hgrow="ALWAYS"/>
+
+                <Button text="Home"
+                        onAction="#onHomeClicked"
+                        style="-fx-background-color: transparent; -fx-text-fill: #FFFFFF;"/>
+                <Button text="About"
+                        onAction="#onAboutClicked"
+                        style="-fx-background-color: transparent; -fx-text-fill: #FFFFFF;"/>
+                <Button text="Help"
+                        onAction="#onHelpClicked"
+                        style="-fx-background-color: transparent; -fx-text-fill: #FFFFFF;"/>
+            </children>
+        </HBox>
+    </top>
+
+    <center>
+        <VBox spacing="30" alignment="TOP_CENTER">
+            <padding>
+                <Insets top="30" right="40" bottom="30" left="40"/>
+            </padding>
+
+            <children>
+                <VBox spacing="10" alignment="CENTER">
+                    <children>
+                        <Label text="Welcome to the Quiz Platform">
+                            <font>
+                                <Font name="System Bold" size="26"/>
+                            </font>
+                        </Label>
+                        <Label text="Create, assign, and analyze quizzes for students – all in one place."
+                               wrapText="true"
+                               style="-fx-text-fill: #555555;"
+                               maxWidth="600"/>
+                        <HBox spacing="10" alignment="CENTER">
+                            <children>
+                             
+                                <Button text="Go to Login"
+                                        fx:id="loginButton"
+                                        onAction="#onLoginButtonClicked"
+                                        style="-fx-background-color: #2B3A67; -fx-text-fill: white; -fx-padding: 8 18 8 18;"/>
+                                <Button text="View Demo"
+                                        fx:id="demoButton"
+                                        disable="true"
+                                        tooltip="Demo view not connected yet"
+                                        style="-fx-padding: 8 18 8 18;"/>
+                            </children>
+                        </HBox>
+                    </children>
+                </VBox>
+
+                <HBox spacing="30" alignment="TOP_CENTER">
+                    <VBox spacing="10" prefWidth="260"
+                          style="-fx-background-color: white; -fx-background-radius: 10; -fx-padding: 15;
+                                 -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.15), 8, 0, 0, 3);">
+                        <children>
+                            <Label text="Platform Overview">
+                                <font>
+                                    <Font name="System Bold" size="16"/>
+                                </font>
+                            </Label>
+                            <Label text="High-level statistics to show in the demo."
+                                   wrapText="true"
+                                   style="-fx-text-fill: #666666;"/>
+
+                            <Separator/>
+
+                            <GridPane hgap="10" vgap="8">
+                                <children>
+                                    <Label text="Total users:" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+                                    <Label fx:id="totalUsersLabel" text="—"
+                                           GridPane.rowIndex="0" GridPane.columnIndex="1"/>
+
+                                    <Label text="Active quizzes:" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+                                    <Label fx:id="activeQuizzesLabel" text="—"
+                                           GridPane.rowIndex="1" GridPane.columnIndex="1"/>
+
+                                    <Label text="Quizzes taken today:" GridPane.rowIndex="2" GridPane.columnIndex="0"/>
+                                    <Label fx:id="quizzesTodayLabel" text="—"
+                                           GridPane.rowIndex="2" GridPane.columnIndex="1"/>
+                                </children>
+                            </GridPane>
+
+                            <Label text="(These numbers can be filled from the database later.)"
+                                   wrapText="true"
+                                   style="-fx-font-size: 11; -fx-text-fill: #999999;"/>
+                        </children>
+                    </VBox>
+
+
+                    <HBox spacing="15" alignment="TOP_CENTER">
+
+                        <VBox spacing="8" prefWidth="220"
+                              style="-fx-background-color: white; -fx-background-radius: 10; -fx-padding: 12;
+                                     -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.12), 6, 0, 0, 2);">
+                            <children>
+                                <Label text="Students">
+                                    <font>
+                                        <Font name="System Bold" size="14"/>
+                                    </font>
+                                </Label>
+                                <Label text="• View assigned quizzes&#10;• Take quizzes with instant grading&#10;• Review quiz history and progress"
+                                       wrapText="true"/>
+                            </children>
+                        </VBox>
+
+                        <VBox spacing="8" prefWidth="220"
+                              style="-fx-background-color: white; -fx-background-radius: 10; -fx-padding: 12;
+                                     -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.12), 6, 0, 0, 2);">
+                            <children>
+                                <Label text="Teachers">
+                                    <font>
+                                        <Font name="System Bold" size="14"/>
+                                    </font>
+                                </Label>
+                                <Label text="• Create and edit quizzes&#10;• Assign quizzes to students&#10;• Analyze class performance"
+                                       wrapText="true"/>
+                            </children>
+                        </VBox>
+
+                        <VBox spacing="8" prefWidth="220"
+                              style="-fx-background-color: white; -fx-background-radius: 10; -fx-padding: 12;
+                                     -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.12), 6, 0, 0, 2);">
+                            <children>
+                                <Label text="Admins">
+                                    <font>
+                                        <Font name="System Bold" size="14"/>
+                                    </font>
+                                </Label>
+                                <Label text="• Manage user accounts&#10;• Monitor quizzes and usage&#10;• View platform statistics"
+                                       wrapText="true"/>
+                            </children>
+                        </VBox>
+
+                    </HBox>
+                </HBox>
+
+                <Label fx:id="infoLabel"
+                       text=""
+                       wrapText="true"
+                       maxWidth="600"
+                       style="-fx-text-fill: #A33B3B; -fx-font-size: 12;"/>
+            </children>
+        </VBox>
+    </center>
+
+    <bottom>
+        <HBox alignment="CENTER">
+            <padding>
+                <Insets top="8" right="8" bottom="8" left="8"/>
+            </padding>
+            <children>
+                <Label text="© 2025 Quiz Platform · Built with JavaFX"/>
+            </children>
+        </HBox>
+    </bottom>
+
+</BorderPane>
