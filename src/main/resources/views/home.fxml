@@ -7,7 +7,7 @@
 
 <BorderPane xmlns="http://javafx.com/javafx"
             xmlns:fx="http://javafx.com/fxml"
-            fx:controller="com.example.quizapp.ui.HomeController">
+            fx:controller="com.example.HomeController">
 
     <top>
         <HBox spacing="20" alignment="CENTER_LEFT"
