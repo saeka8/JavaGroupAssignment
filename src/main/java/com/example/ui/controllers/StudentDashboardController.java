@@ -225,15 +225,12 @@ public class StudentDashboardController {
             return;
         }
 
-        // Navigate to quiz taking screen (we'll build this next)
-        // For now, show a placeholder message
-        showAlert("Starting Quiz", "Quiz: " + selectedQuiz.getTitle() + 
-                "\n\nThe quiz taking screen will be implemented in the next commit.");
-        
-        // TODO: Uncomment when QuizTakeController is ready
-        // QuizTakeController controller = SceneManager.getInstance()
-        //         .loadViewWithController(SceneManager.QUIZ_TAKE);
-        // controller.setQuiz(selectedQuiz);
+        // Navigate to quiz taking screen
+        QuizTakeController controller = SceneManager.getInstance()
+                .loadViewWithController(SceneManager.QUIZ_TAKE);
+        if (controller != null) {
+            controller.setQuiz(selectedQuiz);
+        }
     }
 
     @FXML
