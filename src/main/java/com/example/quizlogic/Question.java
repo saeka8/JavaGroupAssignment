@@ -37,5 +37,24 @@ public class Question {
     }
     public String getOptionD() {
         return optionD;
-    }   
+    }
+    
+    public char getCorrectAnswer() {
+        return correctOption;
+    }
+    
+    /**
+     * Returns the text of a specific option.
+     * @param option 'A', 'B', 'C', or 'D'
+     * @return the option text, or null if invalid
+     */
+    public String getOptionText(char option) {
+        return switch (Character.toUpperCase(option)) {
+            case 'A' -> optionA;
+            case 'B' -> optionB;
+            case 'C' -> optionC;
+            case 'D' -> optionD;
+            default -> null;
+        };
+    }
 }
