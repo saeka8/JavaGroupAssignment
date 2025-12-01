@@ -42,11 +42,11 @@ public class MockQuizService implements QuizService {
         
         // Add questions to quiz1
         Question q1 = new Question(nextQuestionId++, "What is the correct way to declare a variable in Java?", 
-                "var x = 5", "int x = 5;", "x := 5", "declare x = 5", 'B');
+                "var x = 5", "int x = 5;", "x := 5", "declare x = 5", 'B', 1);
         Question q2 = new Question(nextQuestionId++, "Which keyword is used to create a class in Java?", 
-                "struct", "class", "def", "function", 'B');
+                "struct", "class", "def", "function", 'B', 1);
         Question q3 = new Question(nextQuestionId++, "What is the output of: System.out.println(5 + 3);", 
-                "53", "8", "5 + 3", "Error", 'B');
+                "53", "8", "5 + 3", "Error", 'B', 1);
         
         quiz1.addQuestion(q1);
         quiz1.addQuestion(q2);
@@ -58,9 +58,9 @@ public class MockQuizService implements QuizService {
         
         // Add questions to quiz2
         Question q4 = new Question(nextQuestionId++, "What is encapsulation?", 
-                "Hiding implementation details", "Creating objects", "Inheriting properties", "None of the above", 'A');
+                "Hiding implementation details", "Creating objects", "Inheriting properties", "None of the above", 'A', 1);
         Question q5 = new Question(nextQuestionId++, "Which OOP principle allows a class to inherit from another?", 
-                "Polymorphism", "Encapsulation", "Inheritance", "Abstraction", 'C');
+                "Polymorphism", "Encapsulation", "Inheritance", "Abstraction", 'C', 1);
         
         quiz2.addQuestion(q4);
         quiz2.addQuestion(q5);
@@ -134,7 +134,7 @@ public class MockQuizService implements QuizService {
             Question newQ = new Question(nextQuestionId++, question.getText(),
                     question.getOptionA(), question.getOptionB(),
                     question.getOptionC(), question.getOptionD(),
-                    question.getCorrectAnswer());
+                    question.getCorrectAnswer(), question.getAssignedScore());
             quiz.addQuestion(newQ);
             questions.put(newQ.getId(), newQ);
             return newQ;

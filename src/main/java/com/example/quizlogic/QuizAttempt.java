@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 public class QuizAttempt {
+    private int id;
     private final int quizId;
     private final int studentId;
     private final int attemptNumber;
@@ -11,6 +12,7 @@ public class QuizAttempt {
     private final List<StudentAnswer> answers;
     private LocalDateTime attemptedAt;
 
+    // New constructor with attemptNumber
     public QuizAttempt(int quizId, int studentId, int attemptNumber, double totalScore, List<StudentAnswer> answers) {
         this.quizId = quizId;
         this.studentId = studentId;
@@ -18,6 +20,19 @@ public class QuizAttempt {
         this.totalScore = totalScore;
         this.answers = answers;
         this.attemptedAt = LocalDateTime.now();
+    }
+    
+    // Old constructor for compatibility (uses attemptNumber = 1)
+    public QuizAttempt(int quizId, int studentId, double score, List<StudentAnswer> answers) {
+        this(quizId, studentId, 1, score, answers);
+    }
+
+    public int getId() {
+        return id;
+    }
+    
+    public void setId(int id) {
+        this.id = id;
     }
 
     public int getStudentId() {
@@ -28,7 +43,16 @@ public class QuizAttempt {
         return quizId;
     }
     
+    public int getAttemptNumber() {
+        return attemptNumber;
+    }
+    
     public double getTotalScore() {
+        return totalScore;
+    }
+    
+    // Alias for compatibility
+    public double getScore() {
         return totalScore;
     }
     

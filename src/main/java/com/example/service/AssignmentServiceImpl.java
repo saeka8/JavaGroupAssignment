@@ -1,8 +1,7 @@
-package com.example.service.impl;
+package com.example.service;
 
 import com.example.model.Quiz;
 import com.example.model.User;
-import com.example.service.AssignmentService;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;

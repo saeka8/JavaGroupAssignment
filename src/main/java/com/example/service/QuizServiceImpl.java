@@ -1,9 +1,8 @@
-package com.example.service.impl;
+package com.example.service;
 
 import com.example.model.Quiz;
 import com.example.model.User;
 import com.example.quizlogic.Question;
-import com.example.service.QuizService;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -139,9 +138,8 @@ public class QuizServiceImpl implements QuizService {
             return getAllQuizzes();
         }
 
-        String searchTerm = query.toLowerCase().trim();
-
         // TODO: Replace with actual DAO call
+        // String searchTerm = query.toLowerCase().trim();
         // return quizDao.searchByTitleOrDescription(searchTerm);
 
         // Placeholder

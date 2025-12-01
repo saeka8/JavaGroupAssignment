@@ -15,7 +15,6 @@ import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
-import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 
 import java.util.Optional;
@@ -233,6 +232,7 @@ public class QuizTakeController {
         QuizAttempt attempt = QuizGrader.gradeQuiz(
                 currentUser.getId(),
                 quiz.getId(),
+                1,
                 quiz.getQuestions(),
                 session.getAllAnswers()
         );

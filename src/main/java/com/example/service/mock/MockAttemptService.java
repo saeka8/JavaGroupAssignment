@@ -26,33 +26,33 @@ public class MockAttemptService implements AttemptService {
         // Create some sample attempts
         // Student 4 (Jane Doe) attempts
         addAttempt(createAttempt(1, 4, 85.0, List.of(
-                new StudentAnswer(1, 'B', true),
-                new StudentAnswer(2, 'B', true),
-                new StudentAnswer(3, 'A', false)
+                new StudentAnswer(1, 'B', true, 1, 1, 1),
+                new StudentAnswer(2, 'B', true, 1, 1, 1),
+                new StudentAnswer(3, 'A', false, 1, 0, 1)
         )));
         
         addAttempt(createAttempt(2, 4, 100.0, List.of(
-                new StudentAnswer(4, 'A', true),
-                new StudentAnswer(5, 'C', true)
+                new StudentAnswer(4, 'A', true, 1, 1, 1),
+                new StudentAnswer(5, 'C', true, 1, 1, 1)
         )));
         
         // Student 5 (Mike Brown) attempts
         addAttempt(createAttempt(1, 5, 66.7, List.of(
-                new StudentAnswer(1, 'A', false),
-                new StudentAnswer(2, 'B', true),
-                new StudentAnswer(3, 'B', true)
+                new StudentAnswer(1, 'A', false, 1, 0, 1),
+                new StudentAnswer(2, 'B', true, 1, 1, 1),
+                new StudentAnswer(3, 'B', true, 1, 1, 1)
         )));
         
         // Student 6 (Emily Davis) attempts
         addAttempt(createAttempt(1, 6, 100.0, List.of(
-                new StudentAnswer(1, 'B', true),
-                new StudentAnswer(2, 'B', true),
-                new StudentAnswer(3, 'B', true)
+                new StudentAnswer(1, 'B', true, 1, 1, 1),
+                new StudentAnswer(2, 'B', true, 1, 1, 1),
+                new StudentAnswer(3, 'B', true, 1, 1, 1)
         )));
         
         addAttempt(createAttempt(2, 6, 50.0, List.of(
-                new StudentAnswer(4, 'A', true),
-                new StudentAnswer(5, 'A', false)
+                new StudentAnswer(4, 'A', true, 1, 1, 1),
+                new StudentAnswer(5, 'A', false, 1, 0, 1)
         )));
     }
     

@@ -1,3 +1,4 @@
+C:\Users\minec\Documents\GitHub\JavaGroupAssignment\src\main\java\com\example\database\DatabaseManager.java
 C:\Users\minec\Documents\GitHub\JavaGroupAssignment\src\main\java\com\example\HomeController.java
 C:\Users\minec\Documents\GitHub\JavaGroupAssignment\src\main\java\com\example\LoginController.java
 C:\Users\minec\Documents\GitHub\JavaGroupAssignment\src\main\java\com\example\Main.java
@@ -9,6 +10,8 @@ C:\Users\minec\Documents\GitHub\JavaGroupAssignment\src\main\java\com\example\qu
 C:\Users\minec\Documents\GitHub\JavaGroupAssignment\src\main\java\com\example\quizlogic\QuizGrader.java
 C:\Users\minec\Documents\GitHub\JavaGroupAssignment\src\main\java\com\example\quizlogic\QuizTakingSession.java
 C:\Users\minec\Documents\GitHub\JavaGroupAssignment\src\main\java\com\example\quizlogic\StudentAnswer.java
+C:\Users\minec\Documents\GitHub\JavaGroupAssignment\src\main\java\com\example\service\AssignmentService.java
+C:\Users\minec\Documents\GitHub\JavaGroupAssignment\src\main\java\com\example\service\AssignmentServiceImpl.java
 C:\Users\minec\Documents\GitHub\JavaGroupAssignment\src\main\java\com\example\service\AttemptService.java
 C:\Users\minec\Documents\GitHub\JavaGroupAssignment\src\main\java\com\example\service\AuthService.java
 C:\Users\minec\Documents\GitHub\JavaGroupAssignment\src\main\java\com\example\service\mock\MockAttemptService.java
@@ -16,6 +19,7 @@ C:\Users\minec\Documents\GitHub\JavaGroupAssignment\src\main\java\com\example\se
 C:\Users\minec\Documents\GitHub\JavaGroupAssignment\src\main\java\com\example\service\mock\MockQuizService.java
 C:\Users\minec\Documents\GitHub\JavaGroupAssignment\src\main\java\com\example\service\mock\MockUserService.java
 C:\Users\minec\Documents\GitHub\JavaGroupAssignment\src\main\java\com\example\service\QuizService.java
+C:\Users\minec\Documents\GitHub\JavaGroupAssignment\src\main\java\com\example\service\QuizServiceImpl.java
 C:\Users\minec\Documents\GitHub\JavaGroupAssignment\src\main\java\com\example\service\ServiceLocator.java
 C:\Users\minec\Documents\GitHub\JavaGroupAssignment\src\main\java\com\example\service\UserService.java
 C:\Users\minec\Documents\GitHub\JavaGroupAssignment\src\main\java\com\example\ui\controllers\AdminDashboardController.java
@@ -25,3 +29,4 @@ C:\Users\minec\Documents\GitHub\JavaGroupAssignment\src\main\java\com\example\ui
 C:\Users\minec\Documents\GitHub\JavaGroupAssignment\src\main\java\com\example\ui\controllers\TeacherDashboardController.java
 C:\Users\minec\Documents\GitHub\JavaGroupAssignment\src\main\java\com\example\ui\util\SceneManager.java
 C:\Users\minec\Documents\GitHub\JavaGroupAssignment\src\main\java\com\example\ui\util\SessionManager.java
+C:\Users\minec\Documents\GitHub\JavaGroupAssignment\src\main\java\DatabaseManager.java
