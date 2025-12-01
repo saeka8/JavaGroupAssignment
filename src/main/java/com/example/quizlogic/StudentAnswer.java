@@ -4,11 +4,17 @@ public class StudentAnswer {
     private final int questionId;
     private final char selectedOption;
     private final boolean isCorrect;
+    private final int assignedScore;
+    private final int scoreEarned;
+    private final int attemptNumber;
 
-    public StudentAnswer(int questionId, char selectedOption, boolean isCorrect) {
+    public StudentAnswer(int questionId, char selectedOption, boolean isCorrect, int assignedScore, int scoreEarned, int attemptNumber) {
         this.questionId = questionId;
         this.selectedOption = selectedOption;
         this.isCorrect = isCorrect;
+        this.assignedScore = assignedScore;
+        this.scoreEarned = scoreEarned;
+        this.attemptNumber = attemptNumber;
     }
 
     public int getQuestionId() {
@@ -19,5 +25,14 @@ public class StudentAnswer {
     }
     public boolean isCorrect() {
         return isCorrect;
+    }
+    public int getAssignedScore() {
+        return assignedScore;
+    }
+    public int getScoreEarned() {
+        return scoreEarned;
+    }
+    public int getAttemptNumber() {
+        return attemptNumber;
     }
 }
