@@ -4,27 +4,20 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 public class QuizAttempt {
-    private int id;
     private final int quizId;
     private final int studentId;
-    private final double score;
+    private final int attemptNumber;
+    private final double totalScore;
     private final List<StudentAnswer> answers;
     private LocalDateTime attemptedAt;
 
-    public QuizAttempt(int quizId, int studentId, double score, List<StudentAnswer> answers) {
+    public QuizAttempt(int quizId, int studentId, int attemptNumber, double totalScore, List<StudentAnswer> answers) {
         this.quizId = quizId;
         this.studentId = studentId;
-        this.score = score;
+        this.attemptNumber = attemptNumber;
+        this.totalScore = totalScore;
         this.answers = answers;
         this.attemptedAt = LocalDateTime.now();
-    }
-
-    public int getId() {
-        return id;
-    }
-    
-    public void setId(int id) {
-        this.id = id;
     }
 
     public int getStudentId() {
@@ -35,8 +28,8 @@ public class QuizAttempt {
         return quizId;
     }
     
-    public double getScore() {
-        return score;
+    public double getTotalScore() {
+        return totalScore;
     }
     
     public List<StudentAnswer> getAnswers() {

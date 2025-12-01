@@ -9,8 +9,9 @@ public class Question {
     private final String optionD;
 
     private final char correctOption; //stores the correct option in the form of A, B, C or D
+    private final int assignedScore;
 
-    public Question(int id, String text, String optionA, String optionB, String optionC, String optionD, char correctOption) {
+    public Question(int id, String text, String optionA, String optionB, String optionC, String optionD, char correctOption, int assignedScore) {
         this.id = id;
         this.text = text;
         this.optionA = optionA;
@@ -18,6 +19,7 @@ public class Question {
         this.optionC = optionC;
         this.optionD = optionD;
         this.correctOption = correctOption;
+        this.assignedScore = assignedScore;
     }
 
     public int getId() {
@@ -41,6 +43,9 @@ public class Question {
     
     public char getCorrectAnswer() {
         return correctOption;
+    }
+    public int getAssignedScore() {
+        return assignedScore;
     }
     
     /**

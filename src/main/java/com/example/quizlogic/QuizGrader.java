@@ -9,38 +9,41 @@ public class QuizGrader {
     public static QuizAttempt gradeQuiz(
             int studentId,
             int quizId,
+            int attemptNumber,
             List<Question> questions,
             Map<Integer, Character> studentAnswers
     ) {
 
         List<StudentAnswer> gradedAnswers = new ArrayList<>();
-        int correctCount = 0;
+        int totalScore = 0;
 
         for (Question q : questions) {
             char selected = studentAnswers.getOrDefault(q.getId(), ' ');
             boolean isCorrect = (selected == q.getCorrectAnswer());
 
-            if (isCorrect) {
-                correctCount++;
-            }
+            int assignedScore = q.getAssignedScore();
+
+            int scoreEarned = isCorrect ? assignedScore : 0;
+
+            totalScore += scoreEarned;
 
             gradedAnswers.add(
                 new StudentAnswer(
                     q.getId(),
                     selected,
-                    isCorrect
+                    isCorrect,
+                    assignedScore,
+                    scoreEarned,
+                    attemptNumber
                 )
             );
         }
 
-        double score = (questions.isEmpty())
-                ? 0.0
-                : (correctCount * 100.0) / questions.size();
-
         return new QuizAttempt(
                 quizId,
                 studentId,
-                score,
+                attemptNumber,
+                totalScore,
                 gradedAnswers
         );
     }
