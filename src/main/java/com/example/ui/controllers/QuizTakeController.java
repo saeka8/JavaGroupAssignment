@@ -228,11 +228,13 @@ public class QuizTakeController {
             }
         }
 
+        int attemptNumber = attemptService.getAttemptCount(currentUser.getId(), quiz.getId()) + 1;
+
         // Grade the quiz
         QuizAttempt attempt = QuizGrader.gradeQuiz(
                 currentUser.getId(),
                 quiz.getId(),
-                1,
+                attemptNumber,
                 quiz.getQuestions(),
                 session.getAllAnswers()
         );
@@ -245,54 +247,42 @@ public class QuizTakeController {
     }
 
     private void showResults(QuizAttempt attempt) {
-        // Create results dialog
         Dialog<Void> dialog = new Dialog<>();
         dialog.setTitle("Quiz Complete!");
-        dialog.setHeaderText(null);
 
-        // Build content
         VBox content = new VBox(20);
         content.setAlignment(Pos.CENTER);
         content.setPadding(new Insets(30));
         content.setStyle("-fx-background-color: white;");
 
-        // Score display
-        double score = attempt.getScore();
-        String emoji = score >= 80 ? "🎉" : score >= 60 ? "👍" : "📚";
-        
-        Label emojiLabel = new Label(emoji);
+        int totalScore = attempt.getTotalScore();   
+
+        Label emojiLabel = new Label(totalScore >= 80 ? "🎉" : totalScore >= 60 ? "👍" : "📚");
         emojiLabel.setStyle("-fx-font-size: 48px;");
 
-        Label scoreLabel = new Label(String.format("%.0f%%", score));
-        scoreLabel.setStyle("-fx-font-size: 48px; -fx-font-weight: bold; " +
-                (score >= 80 ? "-fx-text-fill: #28a745;" : 
-                 score >= 60 ? "-fx-text-fill: #ffc107;" : "-fx-text-fill: #dc3545;"));
+        Label scoreLabel = new Label(totalScore + " pts");
+        scoreLabel.setStyle("-fx-font-size: 48px; -fx-font-weight: bold;");
 
-        Label messageLabel = new Label(getScoreMessage(score));
-        messageLabel.setStyle("-fx-font-size: 16px; -fx-text-fill: #6c757d;");
-
-        // Stats
         int correct = (int) attempt.getAnswers().stream().filter(a -> a.isCorrect()).count();
         int total = attempt.getAnswers().size();
-        
-        Label statsLabel = new Label("You got " + correct + " out of " + total + " questions correct.");
+
+        Label statsLabel = new Label("Correct: " + correct + "/" + total);
         statsLabel.setStyle("-fx-font-size: 14px; -fx-text-fill: #2c3e50;");
 
-        content.getChildren().addAll(emojiLabel, scoreLabel, messageLabel, statsLabel);
+        content.getChildren().addAll(emojiLabel, scoreLabel, statsLabel);
 
         dialog.getDialogPane().setContent(content);
         dialog.getDialogPane().getButtonTypes().add(ButtonType.OK);
-        dialog.getDialogPane().setPrefWidth(400);
 
-        // Return to dashboard when closed
-        dialog.setOnHidden(e -> {
-            SceneManager.getInstance().switchScene(SceneManager.STUDENT_DASHBOARD);
-        });
+        dialog.setOnHidden(e ->
+                SceneManager.getInstance().switchScene(SceneManager.STUDENT_DASHBOARD)
+        );
 
         dialog.showAndWait();
     }
 
-    private String getScoreMessage(double score) {
+
+    private String getScoreMessage(int score) {
         if (score >= 90) return "Excellent work! You've mastered this material!";
         if (score >= 80) return "Great job! You're doing really well!";
         if (score >= 70) return "Good effort! Keep practicing!";

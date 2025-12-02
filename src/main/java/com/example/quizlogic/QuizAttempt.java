@@ -8,12 +8,11 @@ public class QuizAttempt {
     private final int quizId;
     private final int studentId;
     private final int attemptNumber;
-    private final double totalScore;
+    private final int totalScore;
     private final List<StudentAnswer> answers;
     private LocalDateTime attemptedAt;
 
-    // New constructor with attemptNumber
-    public QuizAttempt(int quizId, int studentId, int attemptNumber, double totalScore, List<StudentAnswer> answers) {
+    public QuizAttempt(int quizId, int studentId, int attemptNumber, int totalScore, List<StudentAnswer> answers) {
         this.quizId = quizId;
         this.studentId = studentId;
         this.attemptNumber = attemptNumber;
@@ -23,7 +22,7 @@ public class QuizAttempt {
     }
     
     // Old constructor for compatibility (uses attemptNumber = 1)
-    public QuizAttempt(int quizId, int studentId, double score, List<StudentAnswer> answers) {
+    public QuizAttempt(int quizId, int studentId, int score, List<StudentAnswer> answers) {
         this(quizId, studentId, 1, score, answers);
     }
 
@@ -47,7 +46,7 @@ public class QuizAttempt {
         return attemptNumber;
     }
     
-    public double getTotalScore() {
+    public int getTotalScore() {
         return totalScore;
     }
     

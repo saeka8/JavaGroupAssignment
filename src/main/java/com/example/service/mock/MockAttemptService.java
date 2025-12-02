@@ -25,38 +25,38 @@ public class MockAttemptService implements AttemptService {
     private void initializeTestData() {
         // Create some sample attempts
         // Student 4 (Jane Doe) attempts
-        addAttempt(createAttempt(1, 4, 85.0, List.of(
+        addAttempt(createAttempt(1, 4, 85, List.of(
                 new StudentAnswer(1, 'B', true, 1, 1, 1),
                 new StudentAnswer(2, 'B', true, 1, 1, 1),
                 new StudentAnswer(3, 'A', false, 1, 0, 1)
         )));
         
-        addAttempt(createAttempt(2, 4, 100.0, List.of(
+        addAttempt(createAttempt(2, 4, 100, List.of(
                 new StudentAnswer(4, 'A', true, 1, 1, 1),
                 new StudentAnswer(5, 'C', true, 1, 1, 1)
         )));
         
         // Student 5 (Mike Brown) attempts
-        addAttempt(createAttempt(1, 5, 66.7, List.of(
+        addAttempt(createAttempt(1, 5, 67, List.of(
                 new StudentAnswer(1, 'A', false, 1, 0, 1),
                 new StudentAnswer(2, 'B', true, 1, 1, 1),
                 new StudentAnswer(3, 'B', true, 1, 1, 1)
         )));
         
         // Student 6 (Emily Davis) attempts
-        addAttempt(createAttempt(1, 6, 100.0, List.of(
+        addAttempt(createAttempt(1, 6, 100, List.of(
                 new StudentAnswer(1, 'B', true, 1, 1, 1),
                 new StudentAnswer(2, 'B', true, 1, 1, 1),
                 new StudentAnswer(3, 'B', true, 1, 1, 1)
         )));
         
-        addAttempt(createAttempt(2, 6, 50.0, List.of(
+        addAttempt(createAttempt(2, 6, 50, List.of(
                 new StudentAnswer(4, 'A', true, 1, 1, 1),
                 new StudentAnswer(5, 'A', false, 1, 0, 1)
         )));
     }
     
-    private QuizAttempt createAttempt(int quizId, int studentId, double score, List<StudentAnswer> answers) {
+    private QuizAttempt createAttempt(int quizId, int studentId, int score, List<StudentAnswer> answers) {
         QuizAttempt attempt = new QuizAttempt(quizId, studentId, score, answers);
         // Set random time in past week
         attempt.setAttemptedAt(LocalDateTime.now().minusDays((long)(Math.random() * 7)));
@@ -111,11 +111,11 @@ public class MockAttemptService implements AttemptService {
     }
     
     @Override
-    public Optional<Double> getBestScore(int studentId, int quizId) {
+    public Optional<Integer> getBestScore(int studentId, int quizId) {
         return attempts.values().stream()
                 .filter(a -> a.getStudentId() == studentId && a.getQuizId() == quizId)
-                .map(QuizAttempt::getScore)
-                .max(Double::compare);
+                .map(a -> a.getTotalScore())
+                .max(Integer::compare);
     }
     
     @Override

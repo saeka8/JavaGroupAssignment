@@ -86,15 +86,17 @@ public class StudentDashboardController {
         });
 
         quizStatusColumn.setCellValueFactory(cellData -> {
-            Quiz quiz = cellData.getValue();
-            boolean attempted = attemptService.hasStudentAttemptedQuiz(currentUser.getId(), quiz.getId());
-            if (attempted) {
-                Optional<Double> bestScore = attemptService.getBestScore(currentUser.getId(), quiz.getId());
-                String scoreText = bestScore.map(s -> String.format("Completed (%.0f%%)", s)).orElse("Completed");
-                return new SimpleStringProperty(scoreText);
-            }
-            return new SimpleStringProperty("Not started");
-        });
+        Quiz quiz = cellData.getValue();
+        boolean attempted = attemptService.hasStudentAttemptedQuiz(currentUser.getId(), quiz.getId());
+        if (attempted) {
+            Optional<Integer> bestScore = attemptService.getBestScore(currentUser.getId(), quiz.getId());
+            String scoreText = bestScore.map(s -> "Completed (" + s + " pts)").orElse("Completed");
+            return new SimpleStringProperty(scoreText);
+
+        }
+        return new SimpleStringProperty("Not started");
+    });
+
 
         // Style the status column
         quizStatusColumn.setCellFactory(column -> new TableCell<>() {
@@ -125,37 +127,12 @@ public class StudentDashboardController {
             return new SimpleStringProperty(title);
         });
 
-        historyScoreColumn.setCellValueFactory(cellData -> {
-            double score = cellData.getValue().getScore();
-            return new SimpleStringProperty(String.format("%.1f%%", score));
-        });
-
-        // Style score column based on value
-        historyScoreColumn.setCellFactory(column -> new TableCell<>() {
-            @Override
-            protected void updateItem(String item, boolean empty) {
-                super.updateItem(item, empty);
-                if (empty || item == null) {
-                    setText(null);
-                    setStyle("");
-                } else {
-                    setText(item);
-                    double score = Double.parseDouble(item.replace("%", ""));
-                    if (score >= 80) {
-                        setStyle("-fx-text-fill: #28a745; -fx-font-weight: bold;");
-                    } else if (score >= 60) {
-                        setStyle("-fx-text-fill: #ffc107; -fx-font-weight: bold;");
-                    } else {
-                        setStyle("-fx-text-fill: #dc3545; -fx-font-weight: bold;");
-                    }
-                }
-            }
-        });
+    historyScoreColumn.setCellValueFactory(cellData ->
+                new SimpleStringProperty(cellData.getValue().getTotalScore() + " pts"));   // NEW
 
         historyDateColumn.setCellValueFactory(cellData -> {
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MMM dd, yyyy HH:mm");
-            String date = cellData.getValue().getAttemptedAt().format(formatter);
-            return new SimpleStringProperty(date);
+            DateTimeFormatter fmt = DateTimeFormatter.ofPattern("MMM dd, yyyy HH:mm");
+            return new SimpleStringProperty(cellData.getValue().getAttemptedAt().format(fmt));
         });
     }
 
@@ -204,10 +181,10 @@ public class StudentDashboardController {
             averageScoreLabel.setText("N/A");
         } else {
             double avg = attempts.stream()
-                    .mapToDouble(QuizAttempt::getScore)
+                    .mapToDouble(QuizAttempt::getTotalScore)
                     .average()
                     .orElse(0.0);
-            averageScoreLabel.setText(String.format("%.1f%%", avg));
+            averageScoreLabel.setText(String.format("%.0f pts", avg));
         }
     }
 

@@ -5,9 +5,9 @@ import java.util.stream.Collectors;
 
 public class Analytics {
     //only contains static methods so it doesn't need to be instantiated
-    public static List<Double> getScoresOverTime(List<QuizAttempt> attempts) {
+    public static List<Integer> getScoresOverTime(List<QuizAttempt> attempts) {
         return attempts.stream()
-                .map(QuizAttempt::getScore)
+                .map(QuizAttempt::getTotalScore)
                 .collect(Collectors.toList());
     }
     //the function above is used to get the scores from previous quizzes ordered by time

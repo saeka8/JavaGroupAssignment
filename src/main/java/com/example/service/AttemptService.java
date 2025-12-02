@@ -45,20 +45,36 @@ public interface AttemptService {
     
     /**
      * Get the best score for a student on a quiz.
+     * CHANGED: Now returns Integer score instead of Double percentage.
      */
-    Optional<Double> getBestScore(int studentId, int quizId);
-    
+    default Optional<Integer> getBestScore(int studentId, int quizId) {    // NEW
+        return getStudentAttemptsForQuiz(studentId, quizId)
+                .stream()
+                .map(QuizAttempt::getTotalScore)      // use integer score
+                .max(Integer::compareTo);
+    }
+
     // ========== Analytics ==========
-    
+
     /**
      * Get average score for a quiz.
      */
-    double getAverageScoreForQuiz(int quizId);
+    default double getAverageScoreForQuiz(int quizId) {                   // UPDATED
+        return getAttemptsByQuiz(quizId).stream()
+                .mapToInt(QuizAttempt::getTotalScore)
+                .average()
+                .orElse(0.0);
+    }
     
     /**
      * Get average score for a student across all quizzes.
      */
-    double getAverageScoreForStudent(int studentId);
+    default double getAverageScoreForStudent(int studentId) {             // UPDATED
+        return getAttemptsByStudent(studentId).stream()
+                .mapToInt(QuizAttempt::getTotalScore)
+                .average()
+                .orElse(0.0);
+    }
     
     /**
      * Get total attempts count.
@@ -80,4 +96,17 @@ public interface AttemptService {
      * @return Map of score range (e.g., "0-20", "21-40") to count
      */
     Map<String, Integer> getScoreDistribution(int quizId);
+
+
+    // ============================
+    //      EXTRA HELPER METHOD
+    // ============================
+
+    /**
+     * NEW — required by QuizTakeController
+     * Count how many attempts a student has made on a quiz.
+     */
+    default int getAttemptCount(int studentId, int quizId) {              // NEW
+        return getStudentAttemptsForQuiz(studentId, quizId).size();
+    }
 }
