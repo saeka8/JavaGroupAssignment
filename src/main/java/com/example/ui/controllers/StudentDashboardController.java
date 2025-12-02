@@ -2,6 +2,7 @@ package com.example.ui.controllers;
 
 import com.example.model.Quiz;
 import com.example.model.User;
+import com.example.quizlogic.Analytics;
 import com.example.quizlogic.QuizAttempt;
 import com.example.service.AttemptService;
 import com.example.service.QuizService;
@@ -16,8 +17,15 @@ import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 
+import javafx.scene.chart.CategoryAxis;
+import javafx.scene.chart.LineChart;
+import javafx.scene.chart.NumberAxis;
+import javafx.scene.chart.XYChart;
+
+
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -49,6 +57,12 @@ public class StudentDashboardController {
     @FXML private TableColumn<QuizAttempt, String> historyScoreColumn;
     @FXML private TableColumn<QuizAttempt, String> historyDateColumn;
 
+    // Chart components
+    @FXML private LineChart<String, Number> scoreProgressChart;
+    @FXML private CategoryAxis xAxis;
+    @FXML private NumberAxis yAxis;
+    @FXML private Label chartMessageLabel;
+
     // Services
     private final QuizService quizService = ServiceLocator.getQuizService();
     private final AttemptService attemptService = ServiceLocator.getAttemptService();
@@ -66,8 +80,10 @@ public class StudentDashboardController {
         setupQuizzesTable();
         setupHistoryTable();
         setupSearch();
+        setupScoreChart();
         loadData();
     }
+
 
     private void setupHeader() {
         if (currentUser != null) {
@@ -149,6 +165,23 @@ public class StudentDashboardController {
         });
     }
 
+    private void setupScoreChart() {
+        // Configure Y-axis for percentage scores
+        yAxis.setAutoRanging(false);
+        yAxis.setLowerBound(0);
+        yAxis.setUpperBound(100);
+        yAxis.setTickUnit(10);
+        yAxis.setLabel("Score (%)");
+        
+        // Configure X-axis
+        xAxis.setLabel("Attempt");
+        
+        // Style the chart
+        scoreProgressChart.setLegendVisible(true);
+        scoreProgressChart.setCreateSymbols(true);
+        scoreProgressChart.setAnimated(true);
+    }
+
     private void loadData() {
         if (currentUser == null) return;
 
@@ -164,6 +197,63 @@ public class StudentDashboardController {
 
         // Update stats
         updateStats(quizzes, attempts);
+
+        // load score progress chart using Analytics
+        loadScoreProgressChart(attempts);
+    }
+
+    private void loadScoreProgressChart(List<QuizAttempt> attempts) {
+        scoreProgressChart.getData().clear();
+        
+        if (attempts.isEmpty()) {
+            chartMessageLabel.setText("💡 Complete quizzes to see your progress!");
+            chartMessageLabel.setStyle("-fx-text-fill: #6c757d;");
+            return;
+        }
+
+        // Use existing Analytics.groupAttemptsByQuiz()
+        Map<Integer, List<QuizAttempt>> attemptsByQuiz = Analytics.groupAttemptsByQuiz(attempts);
+        
+        int quizCount = 0;
+        for (Map.Entry<Integer, List<QuizAttempt>> entry : attemptsByQuiz.entrySet()) {
+            int quizId = entry.getKey();
+            List<QuizAttempt> quizAttempts = entry.getValue();
+            
+            Optional<Quiz> quizOpt = quizService.getQuizById(quizId);
+            if (!quizOpt.isPresent()) continue;
+            
+            Quiz quiz = quizOpt.get();
+            quizCount++;
+            
+            // Create series for this quiz
+            XYChart.Series<String, Number> series = new XYChart.Series<>();
+            series.setName(quiz.getTitle());
+            
+            // Use existing Analytics.getScoresOverTime()
+            List<Integer> rawScores = Analytics.getScoresOverTime(quizAttempts);
+            
+            // Get total questions from quiz
+            int totalQuestions = quiz.getQuestions().size();
+            
+            // Use new helper to convert to percentages
+            List<Double> percentages = Analytics.convertToPercentages(rawScores, totalQuestions);
+            
+            // Add data points
+            for (int i = 0; i < percentages.size(); i++) {
+                String attemptLabel = "Attempt " + (i + 1);
+                series.getData().add(new XYChart.Data<>(attemptLabel, percentages.get(i)));
+            }
+            
+            scoreProgressChart.getData().add(series);
+        }
+        
+        // Update message
+        if (quizCount > 0) {
+            chartMessageLabel.setText(String.format(
+                "📊 Showing progress for %d quiz(es)", quizCount
+            ));
+            chartMessageLabel.setStyle("-fx-text-fill: #28a745;");
+        }
     }
 
     private void updateStats(List<Quiz> quizzes, List<QuizAttempt> attempts) {
@@ -176,15 +266,22 @@ public class StudentDashboardController {
                 .count();
         completedQuizzesCount.setText(String.valueOf(completedCount));
 
-        // Calculate average score
+        // Calculate average using existing Analytics approach
         if (attempts.isEmpty()) {
             averageScoreLabel.setText("N/A");
         } else {
-            double avg = attempts.stream()
-                    .mapToDouble(QuizAttempt::getTotalScore)
+            // Get all scores
+            List<Integer> allScores = Analytics.getScoresOverTime(attempts);
+            
+            // Calculate average - assuming each quiz has similar question count
+            // For more accuracy, you'd need to weight by question count
+            double avgScore = allScores.stream()
+                    .mapToInt(Integer::intValue)
                     .average()
                     .orElse(0.0);
-            averageScoreLabel.setText(String.format("%.0f pts", avg));
+            
+            // Estimate percentage (you might want to store max score per attempt)
+            averageScoreLabel.setText(String.format("%.1f", avgScore));
         }
     }
 
