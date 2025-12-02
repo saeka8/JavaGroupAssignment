@@ -121,7 +121,7 @@ public class TeacherDashboardController {
                 } else {
                     setText(item);
                     if (!item.equals("N/A")) {
-                        double score = Double.parseDouble(item.replace("%", ""));
+                        int score = Double.parseDouble(item.replace("%", "")); //fix this so score is int and not double
                         if (score >= 80) {
                             setStyle("-fx-text-fill: #28a745; -fx-font-weight: bold;");
                         } else if (score >= 60) {
@@ -155,7 +155,7 @@ public class TeacherDashboardController {
         });
 
         resultScoreColumn.setCellValueFactory(cellData -> {
-            double score = cellData.getValue().getScore();
+            int score = cellData.getValue().getTotalScore();
             return new SimpleStringProperty(String.format("%.1f%%", score));
         });
 
@@ -168,7 +168,7 @@ public class TeacherDashboardController {
                     setStyle("");
                 } else {
                     setText(item);
-                    double score = Double.parseDouble(item.replace("%", ""));
+                    int score = Double.parseDouble(item.replace("%", ""));
                     if (score >= 80) {
                         setStyle("-fx-text-fill: #28a745; -fx-font-weight: bold;");
                     } else if (score >= 60) {

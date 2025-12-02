@@ -7,11 +7,11 @@ public class QuizAttempt {
     private final int quizId;
     private final int studentId;
     private final int attemptNumber;
-    private final double totalScore;
+    private final int totalScore;
     private final List<StudentAnswer> answers;
     private LocalDateTime attemptedAt;
 
-    public QuizAttempt(int quizId, int studentId, int attemptNumber, double totalScore, List<StudentAnswer> answers) {
+    public QuizAttempt(int quizId, int studentId, int attemptNumber, int totalScore, List<StudentAnswer> answers) {
         this.quizId = quizId;
         this.studentId = studentId;
         this.attemptNumber = attemptNumber;
@@ -28,7 +28,7 @@ public class QuizAttempt {
         return quizId;
     }
     
-    public double getTotalScore() {
+    public int getTotalScore() {
         return totalScore;
     }
     

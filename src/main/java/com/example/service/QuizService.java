@@ -3,7 +3,6 @@ package com.example.service;
 import com.example.model.Quiz;
 import com.example.model.User;
 import com.example.quizlogic.Question;
-import com.example.quizlogic.QuizAttempt;
 
 import java.util.List;
 import java.util.Optional;
