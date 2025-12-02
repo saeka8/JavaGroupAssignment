@@ -1,6 +1,7 @@
 package com.example.database;
 
 import com.example.model.User;
+import com.example.quizlogic.QuizAttempt;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -152,5 +153,25 @@ public class RetrieveFromDatabase {
             }
         }
         throw new SQLException("Question not found with id: " + questionId);
+    }
+
+    // Get student's scores lists by QuizId
+    public static Map<Integer, QuizAttempt> getScores(Connection conn, int quizId, int studentId) throws SQLException {
+        String sql = "SELECT attempt, score FROM scores WHERE quiz_id = " + quizId + " AND student_id = " + studentId;
+        Map<Integer, QuizAttempt> studentScores = new HashMap<>();
+        try (Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+            while (rs.next()) {
+                int attempt = rs.getInt("attempt");
+                int score = rs.getInt("score");
+
+                // Use attempt number as key
+                studentScores.put(attempt, new QuizAttempt(quizId, studentId, attempt, score));
+            }
+        }
+        if (studentScores.isEmpty()) {
+            throw new SQLException("No quiz attempts found for quiz_id: " + quizId + " and student_id: " + studentId);
+        }
+        return studentScores;
     }
 }

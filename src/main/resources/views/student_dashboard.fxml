@@ -12,7 +12,6 @@
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.HBox?>
-<?import javafx.scene.layout.Priority?>
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.chart.LineChart?>
@@ -79,28 +78,6 @@
                     </VBox>
                 </HBox>
 
-                <!-- Score Progress Chart -->
-                <VBox spacing="10" style="-fx-background-color: white; -fx-background-radius: 10; -fx-padding: 20; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 10, 0, 0, 3);">
-                    <Label text="📈 Score Progress" style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #2c3e50;"/>
-                    <Label text="Track your improvement across quiz attempts" style="-fx-font-size: 12px; -fx-text-fill: #6c757d;"/>
-                    
-                    <Separator/>
-                    
-                    <LineChart fx:id="scoreProgressChart" prefHeight="300" legendVisible="true"
-                               style="-fx-background-color: white;">
-                        <xAxis>
-                            <CategoryAxis label="Attempt" side="BOTTOM" fx:id="xAxis"/>
-                        </xAxis>
-                        <yAxis>
-                            <NumberAxis label="Score (%)" side="LEFT" fx:id="yAxis" 
-                                       lowerBound="0" upperBound="100" tickUnit="10"/>
-                        </yAxis>
-                    </LineChart>
-                    
-                    <Label fx:id="chartMessageLabel" text="💡 Complete quizzes to see your progress!" 
-                           style="-fx-font-size: 12px; -fx-text-fill: #6c757d; -fx-padding: 10 0 0 0;"/>
-                </VBox>
-
                 <!-- Tabs for Quizzes and History -->
                 <TabPane tabClosingPolicy="UNAVAILABLE" style="-fx-background-color: white;" VBox.vgrow="ALWAYS">
                     
@@ -165,6 +142,41 @@
                         </VBox>
                     </Tab>
                 </TabPane>
+
+                <!--Quiz-Specific Analytics Section -->
+                <VBox fx:id="quizAnalyticsSection" spacing="10" managed="false" visible="false"
+                      style="-fx-background-color: white; -fx-background-radius: 10; -fx-padding: 20; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 10, 0, 0, 3);">
+                    
+                    <Label fx:id="selectedQuizLabel" text="Quiz: [Select a quiz to see analytics]" 
+                           style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #2c3e50;"/>
+                    
+                    <Label fx:id="quizStatsLabel" text="Best Score: N/A | Total Attempts: 0" 
+                           style="-fx-font-size: 12px; -fx-text-fill: #6c757d;"/>
+                    
+                    <Separator/>
+                    
+                    <Label text="📈 Score Progress Over Attempts" 
+                           style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #2c3e50;"/>
+                    
+                    <LineChart fx:id="quizSpecificChart" prefHeight="300" legendVisible="false"
+                               style="-fx-background-color: white;">
+                        <xAxis>
+                            <CategoryAxis label="Attempt Number" side="BOTTOM" fx:id="quizXAxis"/>
+                        </xAxis>
+                        <yAxis>
+                            <NumberAxis label="Score (%)" side="LEFT" fx:id="quizYAxis" 
+                                       lowerBound="0" upperBound="100" tickUnit="10"/>
+                        </yAxis>
+                    </LineChart>
+                    
+                    <Label fx:id="quizChartMessageLabel" text="" 
+                           style="-fx-font-size: 12px; -fx-text-fill: #6c757d; -fx-padding: 10 0 0 0;"/>
+                    
+                    <HBox spacing="10" alignment="CENTER_RIGHT">
+                        <Button text="Close Analytics" onAction="#handleCloseAnalytics" 
+                                style="-fx-background-color: #6c757d; -fx-text-fill: white; -fx-padding: 8 16; -fx-background-radius: 5; -fx-cursor: hand;"/>
+                    </HBox>
+                </VBox>
 
             </VBox>
         </ScrollPane>

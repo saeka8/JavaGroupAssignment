@@ -1,6 +1,7 @@
 package com.example.quizlogic;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList; 
 import java.util.List;
 
 public class QuizAttempt {
@@ -18,6 +19,15 @@ public class QuizAttempt {
         this.attemptNumber = attemptNumber;
         this.totalScore = totalScore;
         this.answers = answers;
+        this.attemptedAt = LocalDateTime.now();
+    }
+
+    public QuizAttempt(int quizId, int studentId, int attemptNumber, int totalScore){
+        this.quizId = quizId;
+        this.studentId = studentId;
+        this.attemptNumber = attemptNumber;
+        this.totalScore = totalScore;
+        this.answers = new ArrayList<>();  
         this.attemptedAt = LocalDateTime.now();
     }
     

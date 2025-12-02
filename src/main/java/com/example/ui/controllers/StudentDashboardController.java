@@ -1,5 +1,7 @@
 package com.example.ui.controllers;
 
+import com.example.database.DatabaseManager; 
+import com.example.database.RetrieveFromDatabase; 
 import com.example.model.Quiz;
 import com.example.model.User;
 import com.example.quizlogic.Analytics;
@@ -21,13 +23,13 @@ import javafx.scene.chart.CategoryAxis;
 import javafx.scene.chart.LineChart;
 import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.XYChart;
+import javafx.scene.layout.VBox;
 
 
 import java.time.format.DateTimeFormatter;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.util.*;
 /**
  * Controller for the Student Dashboard.
  * Shows assigned quizzes and attempt history.
@@ -57,11 +59,13 @@ public class StudentDashboardController {
     @FXML private TableColumn<QuizAttempt, String> historyScoreColumn;
     @FXML private TableColumn<QuizAttempt, String> historyDateColumn;
 
-    // Chart components
-    @FXML private LineChart<String, Number> scoreProgressChart;
-    @FXML private CategoryAxis xAxis;
-    @FXML private NumberAxis yAxis;
-    @FXML private Label chartMessageLabel;
+    // Quiz-specific analytics section
+    @FXML private VBox quizAnalyticsSection;
+    @FXML private Label selectedQuizLabel;
+    @FXML private Label quizStatsLabel;
+    @FXML private Label quizChartMessageLabel;
+    @FXML private LineChart<String, Number> quizSpecificChart;
+    @FXML private NumberAxis quizYAxis;
 
     // Services
     private final QuizService quizService = ServiceLocator.getQuizService();
@@ -80,7 +84,8 @@ public class StudentDashboardController {
         setupQuizzesTable();
         setupHistoryTable();
         setupSearch();
-        setupScoreChart();
+        setupQuizSpecificChart();
+        setupTableSelectionListeners();
         loadData();
     }
 
@@ -165,22 +170,133 @@ public class StudentDashboardController {
         });
     }
 
-    private void setupScoreChart() {
-        // Configure Y-axis for percentage scores
-        yAxis.setAutoRanging(false);
-        yAxis.setLowerBound(0);
-        yAxis.setUpperBound(100);
-        yAxis.setTickUnit(10);
-        yAxis.setLabel("Score (%)");
+    private void setupQuizSpecificChart() {
+        quizYAxis.setAutoRanging(false);
+        quizYAxis.setLowerBound(0);
+        quizYAxis.setUpperBound(100);
+        quizYAxis.setTickUnit(10);
         
-        // Configure X-axis
-        xAxis.setLabel("Attempt");
-        
-        // Style the chart
-        scoreProgressChart.setLegendVisible(true);
-        scoreProgressChart.setCreateSymbols(true);
-        scoreProgressChart.setAnimated(true);
+        quizSpecificChart.setLegendVisible(false);
+        quizSpecificChart.setCreateSymbols(true);
+        quizSpecificChart.setAnimated(true);
     }
+
+    // Setup selection listeners for both tables
+    private void setupTableSelectionListeners() {
+        // Listen to quizzes table selection
+        quizzesTable.getSelectionModel().selectedItemProperty().addListener(
+            (observable, oldValue, newValue) -> {
+                if (newValue != null) {
+                    historyTable.getSelectionModel().clearSelection();
+                    showQuizAnalytics(newValue.getId());
+                }
+            }
+        );
+
+        // Listen to history table selection
+        historyTable.getSelectionModel().selectedItemProperty().addListener(
+            (observable, oldValue, newValue) -> {
+                if (newValue != null) {
+                    quizzesTable.getSelectionModel().clearSelection();
+                    showQuizAnalytics(newValue.getQuizId());
+                }
+            }
+        );
+    }
+
+    // Show analytics for a specific quiz
+    private void showQuizAnalytics(int quizId) {
+        try (Connection conn = DatabaseManager.connectWithDatabase()) {
+            if (conn == null) return;
+
+            // Get quiz details
+            Optional<Quiz> quizOpt = quizService.getQuizById(quizId);
+            if (!quizOpt.isPresent()) return;
+            
+            Quiz quiz = quizOpt.get();
+            
+            // Get attempts for this specific quiz using the new SQL method
+            Map<Integer, QuizAttempt> attemptsMap = RetrieveFromDatabase.getScores(conn, quizId, currentUser.getId());
+            
+            if (attemptsMap.isEmpty()) {
+                selectedQuizLabel.setText("Quiz: " + quiz.getTitle());
+                quizStatsLabel.setText("No attempts yet for this quiz");
+                quizChartMessageLabel.setText("💡 Take this quiz to see your progress!");
+                quizAnalyticsSection.setVisible(true);
+                quizAnalyticsSection.setManaged(true);
+                quizSpecificChart.getData().clear();
+                return;
+            }
+
+            // Convert map to sorted list by attempt number
+            List<QuizAttempt> quizAttempts = new ArrayList<>(attemptsMap.values());
+            quizAttempts.sort(Comparator.comparingInt(QuizAttempt::getAttemptNumber));
+
+            // Update labels
+            selectedQuizLabel.setText("Quiz: " + quiz.getTitle());
+            
+            // Calculate stats using Analytics
+            List<Integer> scores = Analytics.getScoresOverTime(quizAttempts);
+            int totalQuestions = quiz.getQuestions().size();
+            List<Double> percentages = Analytics.convertToPercentages(scores, totalQuestions);
+            
+            double bestScore = percentages.stream().max(Double::compare).orElse(0.0);
+            int totalAttempts = quizAttempts.size();
+            
+            quizStatsLabel.setText(String.format(
+                "Best Score: %.1f%% | Total Attempts: %d | Questions: %d", 
+                bestScore, totalAttempts, totalQuestions
+            ));
+
+            // Build the chart
+            quizSpecificChart.getData().clear();
+            XYChart.Series<String, Number> series = new XYChart.Series<>();
+            series.setName(quiz.getTitle());
+
+            for (int i = 0; i < percentages.size(); i++) {
+                String attemptLabel = "Attempt " + (i + 1);
+                series.getData().add(new XYChart.Data<>(attemptLabel, percentages.get(i)));
+            }
+
+            quizSpecificChart.getData().add(series);
+
+            // Calculate improvement
+            if (percentages.size() >= 2) {
+                double firstScore = percentages.get(0);
+                double lastScore = percentages.get(percentages.size() - 1);
+                double improvement = lastScore - firstScore;
+                
+                String trend = improvement > 0 ? "📈 Improving" : 
+                              improvement < 0 ? "📉 Declining" : "➡️ Stable";
+                
+                quizChartMessageLabel.setText(String.format(
+                    "%s | Improvement: %+.1f%% from first attempt", 
+                    trend, improvement
+                ));
+                quizChartMessageLabel.setStyle(improvement >= 0 ? 
+                    "-fx-text-fill: #28a745;" : "-fx-text-fill: #dc3545;");
+            } else {
+                quizChartMessageLabel.setText("📊 Complete more attempts to track improvement");
+                quizChartMessageLabel.setStyle("-fx-text-fill: #6c757d;");
+            }
+
+            // Show the analytics section
+            quizAnalyticsSection.setVisible(true);
+            quizAnalyticsSection.setManaged(true);
+
+        } catch (SQLException e) {
+            showAlert("Error", "Failed to load quiz analytics: " + e.getMessage());
+        }
+    }
+
+    @FXML
+    private void handleCloseAnalytics() {
+        quizAnalyticsSection.setVisible(false);
+        quizAnalyticsSection.setManaged(false);
+        quizzesTable.getSelectionModel().clearSelection();
+        historyTable.getSelectionModel().clearSelection();
+    }
+
 
     private void loadData() {
         if (currentUser == null) return;
@@ -197,64 +313,8 @@ public class StudentDashboardController {
 
         // Update stats
         updateStats(quizzes, attempts);
-
-        // load score progress chart using Analytics
-        loadScoreProgressChart(attempts);
     }
 
-    private void loadScoreProgressChart(List<QuizAttempt> attempts) {
-        scoreProgressChart.getData().clear();
-        
-        if (attempts.isEmpty()) {
-            chartMessageLabel.setText("💡 Complete quizzes to see your progress!");
-            chartMessageLabel.setStyle("-fx-text-fill: #6c757d;");
-            return;
-        }
-
-        // Use existing Analytics.groupAttemptsByQuiz()
-        Map<Integer, List<QuizAttempt>> attemptsByQuiz = Analytics.groupAttemptsByQuiz(attempts);
-        
-        int quizCount = 0;
-        for (Map.Entry<Integer, List<QuizAttempt>> entry : attemptsByQuiz.entrySet()) {
-            int quizId = entry.getKey();
-            List<QuizAttempt> quizAttempts = entry.getValue();
-            
-            Optional<Quiz> quizOpt = quizService.getQuizById(quizId);
-            if (!quizOpt.isPresent()) continue;
-            
-            Quiz quiz = quizOpt.get();
-            quizCount++;
-            
-            // Create series for this quiz
-            XYChart.Series<String, Number> series = new XYChart.Series<>();
-            series.setName(quiz.getTitle());
-            
-            // Use existing Analytics.getScoresOverTime()
-            List<Integer> rawScores = Analytics.getScoresOverTime(quizAttempts);
-            
-            // Get total questions from quiz
-            int totalQuestions = quiz.getQuestions().size();
-            
-            // Use new helper to convert to percentages
-            List<Double> percentages = Analytics.convertToPercentages(rawScores, totalQuestions);
-            
-            // Add data points
-            for (int i = 0; i < percentages.size(); i++) {
-                String attemptLabel = "Attempt " + (i + 1);
-                series.getData().add(new XYChart.Data<>(attemptLabel, percentages.get(i)));
-            }
-            
-            scoreProgressChart.getData().add(series);
-        }
-        
-        // Update message
-        if (quizCount > 0) {
-            chartMessageLabel.setText(String.format(
-                "📊 Showing progress for %d quiz(es)", quizCount
-            ));
-            chartMessageLabel.setStyle("-fx-text-fill: #28a745;");
-        }
-    }
 
     private void updateStats(List<Quiz> quizzes, List<QuizAttempt> attempts) {
         assignedQuizzesCount.setText(String.valueOf(quizzes.size()));
