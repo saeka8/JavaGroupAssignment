@@ -56,4 +56,101 @@ public class RetrieveFromDatabase {
         }
         return groups;
     }
+
+    // Retrieve teacher ID by email
+    public static int getTeacherId(Connection conn, String teacherEmail) throws SQLException {
+        String sql = "SELECT id FROM people WHERE email='" + teacherEmail + "' AND role='teacher'";
+        try (Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+            if (rs.next()) {
+                return rs.getInt("id");
+            }
+        }
+        throw new SQLException("Teacher not found with email: " + teacherEmail);
+    }
+
+    // Retrieve group ID by group name
+    public static int getGroupId(Connection conn, String groupName) throws SQLException {
+        String sql = "SELECT id FROM groups WHERE name='" + groupName + "'";
+        try (Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+            if (rs.next()) {
+                return rs.getInt("id");
+            }
+        }
+        throw new SQLException("Group not found with name: " + groupName);
+    }
+
+    // Retrieve student ID by email
+    public static int getStudentId(Connection conn, String studentEmail) throws SQLException {
+        String sql = "SELECT id FROM people WHERE email='" + studentEmail + "' AND role='student'";
+        try (Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+            if (rs.next()) {
+                return rs.getInt("id");
+            }
+        }
+        throw new SQLException("Student not found with email: " + studentEmail);
+    }
+
+    // Retrieve quiz ID by quiz name
+    public static int getQuizId(Connection conn, String quizName) throws SQLException {
+        String sql = "SELECT id FROM quiz WHERE quiz_name='" + quizName + "'";
+        try (Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+            if (rs.next()) {
+                return rs.getInt("id");
+            }
+        }
+        throw new SQLException("Quiz not found with name: " + quizName);
+    }
+
+    // Retrieve question ID by question text (last inserted)
+    public static int getQuestionIdByText(Connection conn, String questionText) throws SQLException {
+        String sql = "SELECT id FROM mcq WHERE question='" + questionText + "' ORDER BY id DESC LIMIT 1";
+        try (Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+            if (rs.next()) {
+                return rs.getInt("id");
+            }
+        }
+        throw new SQLException("Question not found");
+    }
+
+    // Get the next attempt number for a student on a specific quiz
+    public static int getNextAttemptNumber(Connection conn, int quizId, int studentId) throws SQLException {
+        String sql = "SELECT MAX(attempt) as max_attempt FROM scores WHERE quiz_id=" + quizId + " AND student_id=" + studentId;
+        try (Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+            if (rs.next()) {
+                int maxAttempt = rs.getInt("max_attempt");
+                return maxAttempt + 1;
+            }
+        }
+        return 1; // First attempt
+    }
+
+    // Get correct option for a question
+    public static char getCorrectOption(Connection conn, int questionId) throws SQLException {
+        String sql = "SELECT correct_option FROM mcq WHERE id=" + questionId;
+        try (Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+            if (rs.next()) {
+                return rs.getString("correct_option").charAt(0);
+            }
+        }
+        throw new SQLException("Question not found with id: " + questionId);
+    }
+
+    // Get assigned score for a question
+    public static int getAssignedScore(Connection conn, int questionId) throws SQLException {
+        String sql = "SELECT assigned_score FROM mcq WHERE id=" + questionId;
+        try (Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+            if (rs.next()) {
+                return rs.getInt("assigned_score");
+            }
+        }
+        throw new SQLException("Question not found with id: " + questionId);
+    }
 }

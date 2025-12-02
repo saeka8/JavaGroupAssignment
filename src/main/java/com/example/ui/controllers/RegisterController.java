@@ -26,9 +26,9 @@ public class RegisterController {
     @FXML
     private void initialize() {
         // Populate role options
-        roleComboBox.getItems().addAll("Student", "Teacher");
+        roleComboBox.getItems().addAll("Student", "Teacher", "Admin");
         roleComboBox.setValue("Student");
-        
+
         // Clear messages on typing
         firstNameField.textProperty().addListener((obs, old, newVal) -> clearMessages());
         lastNameField.textProperty().addListener((obs, old, newVal) -> clearMessages());
@@ -75,7 +75,14 @@ public class RegisterController {
         }
 
         // Create user
-        User.Role role = "Teacher".equals(roleStr) ? User.Role.TEACHER : User.Role.STUDENT;
+        User.Role role;
+        if ("Teacher".equals(roleStr)) {
+            role = User.Role.TEACHER;
+        } else if ("Admin".equals(roleStr)) {
+            role = User.Role.ADMIN;
+        } else {
+            role = User.Role.STUDENT;
+        }
         User newUser = new User(email, password, firstName, lastName, role);
 
         if (authService.register(newUser)) {

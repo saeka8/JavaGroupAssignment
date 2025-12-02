@@ -17,7 +17,8 @@ public class DatabaseManager {
         System.out.println("Connecting to database...");
         // 2. Establish Connection
         // DriverManager asks the driver to open a link to the URL
-        try (Connection conn = DriverManager.getConnection(URL)) {
+        try {
+            Connection conn = DriverManager.getConnection(URL);
             if (conn != null) {
                 System.out.println("Connected to SQLite successfully!");
                 // We will call our helper methods here later
