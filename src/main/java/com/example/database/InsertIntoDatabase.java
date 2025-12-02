@@ -14,7 +14,8 @@ public class InsertIntoDatabase {
     // ====== Insert data =======
     // When admin create user
     // Triggered by: Admin creating a new user
-    public static void insertPeople(Connection conn, String name, String lastName, String email, String password, String role) throws SQLException {
+    // Returns: The ID of the newly created user
+    public static int insertPeople(Connection conn, String name, String lastName, String email, String password, String role) throws SQLException {
         // WARNING: In real apps, use 'PreparedStatement' to prevent SQL Injection.
         // We use simple string concatenation here for learning purposes only.
         String sql = "INSERT INTO people(name, lastname,email,password,role) VALUES('" + name +
@@ -22,6 +23,14 @@ public class InsertIntoDatabase {
         try (Statement stmt = conn.createStatement()) {
             stmt.executeUpdate(sql);
             System.out.println("Inserted user: " + name + " " + lastName + " with role " + role);
+
+            // Get the generated user ID
+            ResultSet rs = stmt.getGeneratedKeys();
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
+            // If auto-generated keys not available, retrieve by email
+            return RetrieveFromDatabase.getUserIdByEmail(conn, email);
         }
     }
 

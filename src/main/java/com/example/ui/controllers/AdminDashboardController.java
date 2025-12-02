@@ -1,13 +1,16 @@
 package com.example.ui.controllers;
 
+import com.example.model.Group;
 import com.example.model.Quiz;
 import com.example.model.User;
 import com.example.service.AttemptService;
+import com.example.service.GroupService;
 import com.example.service.QuizService;
 import com.example.service.ServiceLocator;
 import com.example.service.UserService;
 import com.example.ui.util.SceneManager;
 import com.example.ui.util.SessionManager;
+import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -17,9 +20,13 @@ import javafx.geometry.Insets;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * Controller for the Admin Dashboard.
@@ -54,15 +61,32 @@ public class AdminDashboardController {
     @FXML private TableColumn<Quiz, String> quizTeacherColumn;
     @FXML private TableColumn<Quiz, String> quizQuestionsColumn;
 
+    // Groups Table
+    @FXML private TableView<Group> groupsTable;
+    @FXML private TableColumn<Group, Integer> groupIdColumn;
+    @FXML private TableColumn<Group, String> groupNameColumn;
+    @FXML private TableColumn<Group, String> groupTeacherColumn;
+    @FXML private TableColumn<Group, Integer> groupStudentCountColumn;
+
+    // Enrollment UI
+    @FXML private ComboBox<Group> enrollmentGroupCombo;
+    @FXML private ComboBox<User> enrollmentStudentCombo;
+    @FXML private TableView<User> enrolledStudentsTable;
+    @FXML private TableColumn<User, Integer> enrolledStudentIdColumn;
+    @FXML private TableColumn<User, String> enrolledStudentNameColumn;
+    @FXML private TableColumn<User, String> enrolledStudentEmailColumn;
+
     // Services
     private final UserService userService = ServiceLocator.getUserService();
     private final QuizService quizService = ServiceLocator.getQuizService();
     private final AttemptService attemptService = ServiceLocator.getAttemptService();
+    private final GroupService groupService = ServiceLocator.getGroupService();
 
     // Data
     private ObservableList<User> allUsers;
     private FilteredList<User> filteredUsers;
     private User currentUser;
+    private ObservableList<Group> allGroups;
 
     @FXML
     private void initialize() {
@@ -72,6 +96,8 @@ public class AdminDashboardController {
         setupRoleFilter();
         setupUsersTable();
         setupQuizzesTable();
+        setupGroupsTable();
+        setupEnrollmentUI();
         setupSearch();
         loadData();
     }
@@ -390,6 +416,332 @@ public class AdminDashboardController {
     private void handleLogout() {
         SessionManager.getInstance().logout();
         SceneManager.getInstance().switchScene(SceneManager.LOGIN, 400, 500);
+    }
+
+    private void setupGroupsTable() {
+        groupIdColumn.setCellValueFactory(new PropertyValueFactory<>("id"));
+        groupNameColumn.setCellValueFactory(new PropertyValueFactory<>("name"));
+
+        groupTeacherColumn.setCellValueFactory(cellData -> {
+            int teacherId = cellData.getValue().getTeacherId();
+            String name = userService.getUserById(teacherId)
+                    .map(User::getFullName)
+                    .orElse("Unknown");
+            return new SimpleStringProperty(name);
+        });
+
+        groupStudentCountColumn.setCellValueFactory(cellData -> {
+            int count = groupService.getStudentsInGroup(cellData.getValue().getId()).size();
+            return new SimpleIntegerProperty(count).asObject();
+        });
+
+        // Listen for selection changes to load enrolled students
+        groupsTable.getSelectionModel().selectedItemProperty().addListener((obs, oldSelection, newSelection) -> {
+            if (newSelection != null) {
+                loadEnrolledStudents(newSelection.getId());
+            } else {
+                enrolledStudentsTable.setItems(FXCollections.observableArrayList());
+            }
+        });
+    }
+
+    private void setupEnrollmentUI() {
+        enrolledStudentIdColumn.setCellValueFactory(new PropertyValueFactory<>("id"));
+        enrolledStudentNameColumn.setCellValueFactory(cellData ->
+                new SimpleStringProperty(cellData.getValue().getFullName()));
+        enrolledStudentEmailColumn.setCellValueFactory(new PropertyValueFactory<>("email"));
+
+        // Setup group combo for enrollment
+        enrollmentGroupCombo.setButtonCell(new ListCell<>() {
+            @Override
+            protected void updateItem(Group item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setText(null);
+                } else {
+                    setText(item.getName());
+                }
+            }
+        });
+
+        enrollmentGroupCombo.setCellFactory(lv -> new ListCell<>() {
+            @Override
+            protected void updateItem(Group item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setText(null);
+                } else {
+                    setText(item.getName());
+                }
+            }
+        });
+
+        // Setup student combo for enrollment
+        enrollmentStudentCombo.setButtonCell(new ListCell<>() {
+            @Override
+            protected void updateItem(User item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setText(null);
+                } else {
+                    setText(item.getFullName() + " (" + item.getEmail() + ")");
+                }
+            }
+        });
+
+        enrollmentStudentCombo.setCellFactory(lv -> new ListCell<>() {
+            @Override
+            protected void updateItem(User item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setText(null);
+                } else {
+                    setText(item.getFullName() + " (" + item.getEmail() + ")");
+                }
+            }
+        });
+
+        loadEnrollmentCombos();
+    }
+
+    private void loadEnrollmentCombos() {
+        // Load groups
+        List<Group> groups = groupService.getAllGroups();
+        enrollmentGroupCombo.setItems(FXCollections.observableArrayList(groups));
+
+        // Load students
+        List<User> students = userService.getUsersByRole(User.Role.STUDENT);
+        enrollmentStudentCombo.setItems(FXCollections.observableArrayList(students));
+    }
+
+    private void loadEnrolledStudents(int groupId) {
+        List<User> students = groupService.getStudentsInGroup(groupId);
+        enrolledStudentsTable.setItems(FXCollections.observableArrayList(students));
+    }
+
+    @FXML
+    private void handleCreateGroup() {
+        Dialog<Group> dialog = new Dialog<>();
+        dialog.setTitle("Create New Group");
+        dialog.setHeaderText("Enter group details and select students");
+
+        ButtonType createButton = new ButtonType("Create", ButtonBar.ButtonData.OK_DONE);
+        dialog.getDialogPane().getButtonTypes().addAll(createButton, ButtonType.CANCEL);
+
+        VBox mainVBox = new VBox(15);
+        mainVBox.setPadding(new Insets(20, 20, 10, 20));
+
+        // Group Name
+        HBox nameBox = new HBox(10);
+        nameBox.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
+        Label nameLabel = new Label("Group Name:");
+        nameLabel.setPrefWidth(100);
+        TextField groupNameField = new TextField();
+        groupNameField.setPromptText("Group Name");
+        groupNameField.setPrefWidth(300);
+        nameBox.getChildren().addAll(nameLabel, groupNameField);
+
+        // Teacher Selection
+        HBox teacherBox = new HBox(10);
+        teacherBox.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
+        Label teacherLabel = new Label("Teacher:");
+        teacherLabel.setPrefWidth(100);
+        ComboBox<User> teacherCombo = new ComboBox<>();
+        List<User> teachers = userService.getUsersByRole(User.Role.TEACHER);
+        teacherCombo.setItems(FXCollections.observableArrayList(teachers));
+        teacherCombo.setPrefWidth(300);
+        teacherCombo.setButtonCell(new ListCell<>() {
+            @Override
+            protected void updateItem(User item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setText(null);
+                } else {
+                    setText(item.getFullName());
+                }
+            }
+        });
+        teacherCombo.setCellFactory(lv -> new ListCell<>() {
+            @Override
+            protected void updateItem(User item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setText(null);
+                } else {
+                    setText(item.getFullName());
+                }
+            }
+        });
+        teacherBox.getChildren().addAll(teacherLabel, teacherCombo);
+
+        // Student Selection with Checkboxes
+        Label studentsLabel = new Label("Select Students:");
+        studentsLabel.setStyle("-fx-font-weight: bold;");
+
+        ScrollPane studentScrollPane = new ScrollPane();
+        studentScrollPane.setPrefHeight(200);
+        studentScrollPane.setFitToWidth(true);
+
+        VBox studentCheckboxes = new VBox(5);
+        studentCheckboxes.setPadding(new Insets(10));
+
+        List<User> allStudents = userService.getUsersByRole(User.Role.STUDENT);
+        List<CheckBox> checkBoxes = new ArrayList<>();
+
+        for (User student : allStudents) {
+            CheckBox cb = new CheckBox(student.getFullName() + " (" + student.getEmail() + ")");
+            cb.setUserData(student);
+            checkBoxes.add(cb);
+            studentCheckboxes.getChildren().add(cb);
+        }
+
+        studentScrollPane.setContent(studentCheckboxes);
+
+        mainVBox.getChildren().addAll(nameBox, teacherBox, studentsLabel, studentScrollPane);
+        dialog.getDialogPane().setContent(mainVBox);
+
+        dialog.setResultConverter(dialogButton -> {
+            if (dialogButton == createButton) {
+                String groupName = groupNameField.getText().trim();
+                User selectedTeacher = teacherCombo.getValue();
+
+                if (groupName.isEmpty()) {
+                    showAlert(Alert.AlertType.ERROR, "Validation Error", "Group name is required.");
+                    return null;
+                }
+
+                if (selectedTeacher == null) {
+                    showAlert(Alert.AlertType.ERROR, "Validation Error", "Please select a teacher.");
+                    return null;
+                }
+
+                if (groupService.getGroupByName(groupName).isPresent()) {
+                    showAlert(Alert.AlertType.ERROR, "Group Exists", "A group with this name already exists.");
+                    return null;
+                }
+
+                // Create the group
+                Group newGroup = new Group(groupName, selectedTeacher.getId());
+                Group createdGroup = groupService.createGroup(newGroup);
+
+                // Enroll selected students
+                if (createdGroup != null) {
+                    List<User> selectedStudents = checkBoxes.stream()
+                            .filter(CheckBox::isSelected)
+                            .map(cb -> (User) cb.getUserData())
+                            .collect(Collectors.toList());
+
+                    for (User student : selectedStudents) {
+                        groupService.enrollStudent(createdGroup.getId(), student.getId());
+                    }
+                }
+
+                return createdGroup;
+            }
+            return null;
+        });
+
+        Optional<Group> result = dialog.showAndWait();
+        result.ifPresent(group -> {
+            showAlert(Alert.AlertType.INFORMATION, "Group Created",
+                    "Group '" + group.getName() + "' created successfully with students enrolled!");
+            handleRefreshGroups();
+        });
+    }
+
+    @FXML
+    private void handleDeleteGroup() {
+        Group selectedGroup = groupsTable.getSelectionModel().getSelectedItem();
+        if (selectedGroup == null) {
+            showAlert(Alert.AlertType.WARNING, "No Group Selected",
+                    "Please select a group from the table to delete.");
+            return;
+        }
+
+        Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
+        confirm.setTitle("Delete Group");
+        confirm.setHeaderText("Are you sure you want to delete this group?");
+        confirm.setContentText("Group: " + selectedGroup.getName() + "\n\n" +
+                "This will remove all enrollments. This action cannot be undone.");
+
+        Optional<ButtonType> result = confirm.showAndWait();
+        if (result.isPresent() && result.get() == ButtonType.OK) {
+            if (groupService.deleteGroup(selectedGroup.getId())) {
+                showAlert(Alert.AlertType.INFORMATION, "Group Deleted",
+                        "Group '" + selectedGroup.getName() + "' has been deleted.");
+                handleRefreshGroups();
+            }
+        }
+    }
+
+    @FXML
+    private void handleRefreshGroups() {
+        List<Group> groups = groupService.getAllGroups();
+        allGroups = FXCollections.observableArrayList(groups);
+        groupsTable.setItems(allGroups);
+        loadEnrollmentCombos();
+    }
+
+    @FXML
+    private void handleEnrollStudent() {
+        Group selectedGroup = enrollmentGroupCombo.getValue();
+        User selectedStudent = enrollmentStudentCombo.getValue();
+
+        if (selectedGroup == null) {
+            showAlert(Alert.AlertType.WARNING, "No Group Selected",
+                    "Please select a group.");
+            return;
+        }
+
+        if (selectedStudent == null) {
+            showAlert(Alert.AlertType.WARNING, "No Student Selected",
+                    "Please select a student.");
+            return;
+        }
+
+        if (groupService.enrollStudent(selectedGroup.getId(), selectedStudent.getId())) {
+            showAlert(Alert.AlertType.INFORMATION, "Student Enrolled",
+                    "Student '" + selectedStudent.getFullName() + "' enrolled in '" + selectedGroup.getName() + "'.");
+            loadEnrolledStudents(selectedGroup.getId());
+            handleRefreshGroups(); // Refresh to update student counts
+        } else {
+            showAlert(Alert.AlertType.ERROR, "Enrollment Failed",
+                    "Student may already be enrolled in this group.");
+        }
+    }
+
+    @FXML
+    private void handleRemoveStudent() {
+        User selectedStudent = enrolledStudentsTable.getSelectionModel().getSelectedItem();
+        Group selectedGroup = groupsTable.getSelectionModel().getSelectedItem();
+
+        if (selectedGroup == null) {
+            showAlert(Alert.AlertType.WARNING, "No Group Selected",
+                    "Please select a group from the groups table above.");
+            return;
+        }
+
+        if (selectedStudent == null) {
+            showAlert(Alert.AlertType.WARNING, "No Student Selected",
+                    "Please select a student from the enrolled students table.");
+            return;
+        }
+
+        Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
+        confirm.setTitle("Remove Student");
+        confirm.setHeaderText("Remove student from group?");
+        confirm.setContentText("Student: " + selectedStudent.getFullName() + "\n" +
+                "Group: " + selectedGroup.getName());
+
+        Optional<ButtonType> result = confirm.showAndWait();
+        if (result.isPresent() && result.get() == ButtonType.OK) {
+            if (groupService.removeStudent(selectedGroup.getId(), selectedStudent.getId())) {
+                showAlert(Alert.AlertType.INFORMATION, "Student Removed",
+                        "Student removed from group successfully.");
+                loadEnrolledStudents(selectedGroup.getId());
+                handleRefreshGroups(); // Refresh to update student counts
+            }
+        }
     }
 
     private void showAlert(Alert.AlertType type, String title, String message) {

@@ -13,6 +13,7 @@ public class ServiceLocator {
     private static UserService userService;
     private static QuizService quizService;
     private static AttemptService attemptService;
+    private static GroupService groupService;
 
     static {
         initialize();
@@ -24,22 +25,27 @@ public class ServiceLocator {
         userService = new DatabaseUserService();
         quizService = new DatabaseQuizService(userService);
         attemptService = new DatabaseAttemptService();
+        groupService = new DatabaseGroupService();
     }
-    
+
     public static AuthService getAuthService() {
         return authService;
     }
-    
+
     public static UserService getUserService() {
         return userService;
     }
-    
+
     public static QuizService getQuizService() {
         return quizService;
     }
-    
+
     public static AttemptService getAttemptService() {
         return attemptService;
+    }
+
+    public static GroupService getGroupService() {
+        return groupService;
     }
     
     /**
