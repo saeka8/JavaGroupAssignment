@@ -47,7 +47,7 @@ public interface AttemptService {
      * Get the best score for a student on a quiz.
      * CHANGED: Now returns Integer score instead of Double percentage.
      */
-    default Optional<Integer> getBestScore(int studentId, int quizId) {    // NEW
+    default Optional<Integer> getBestScore(int studentId, int quizId) {
         return getStudentAttemptsForQuiz(studentId, quizId)
                 .stream()
                 .map(QuizAttempt::getTotalScore)      // use integer score
