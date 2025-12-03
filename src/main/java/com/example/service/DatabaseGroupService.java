@@ -1,11 +1,5 @@
 package com.example.service;
 
-import com.example.database.DatabaseManager;
-import com.example.database.InsertIntoDatabase;
-import com.example.database.RetrieveFromDatabase;
-import com.example.model.Group;
-import com.example.model.User;
-
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -13,6 +7,11 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+
+import com.example.database.DatabaseManager;
+import com.example.database.InsertIntoDatabase;
+import com.example.model.Group;
+import com.example.model.User;
 
 /**
  * Real implementation of GroupService using SQLite database.
@@ -143,6 +142,18 @@ public class DatabaseGroupService implements GroupService {
             return rowsAffected > 0;
         } catch (SQLException e) {
             System.err.println("Error deleting group: " + e.getMessage());
+            return false;
+        }
+    }
+
+    @Override
+    public boolean reassignGroups(int fromTeacherId, int toTeacherId) {
+        String sql = "UPDATE groups SET teacher_id=" + toTeacherId + " WHERE teacher_id=" + fromTeacherId;
+        try (Statement stmt = conn.createStatement()) {
+            stmt.executeUpdate(sql);
+            return true;
+        } catch (SQLException e) {
+            System.err.println("Error reassigning groups: " + e.getMessage());
             return false;
         }
     }

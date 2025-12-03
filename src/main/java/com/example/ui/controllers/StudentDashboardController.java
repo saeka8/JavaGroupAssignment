@@ -1,7 +1,17 @@
 package com.example.ui.controllers;
 
-import com.example.database.DatabaseManager; 
-import com.example.database.RetrieveFromDatabase; 
+import java.sql.Connection;
+import java.sql.SQLException; 
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+
+import com.example.database.DatabaseManager;
+import com.example.database.RetrieveFromDatabase;
+import com.example.model.Group;
 import com.example.model.Quiz;
 import com.example.model.User;
 import com.example.quizlogic.Analytics;
@@ -11,25 +21,25 @@ import com.example.service.QuizService;
 import com.example.service.ServiceLocator;
 import com.example.ui.util.SceneManager;
 import com.example.ui.util.SessionManager;
+
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.fxml.FXML;
-import javafx.scene.control.*;
-import javafx.scene.control.cell.PropertyValueFactory;
-
-import javafx.scene.chart.CategoryAxis;
 import javafx.scene.chart.LineChart;
 import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.XYChart;
+import javafx.scene.control.Alert;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.Label;
+import javafx.scene.control.ListCell;
+import javafx.scene.control.TableCell;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
+import javafx.scene.control.TextField;
+import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.VBox;
-
-
-import java.time.format.DateTimeFormatter;
-import java.sql.Connection;
-import java.sql.SQLException;
-import java.util.*;
 /**
  * Controller for the Student Dashboard.
  * Shows assigned quizzes and attempt history.
@@ -39,6 +49,7 @@ public class StudentDashboardController {
     // Header
     @FXML private Label welcomeLabel;
     @FXML private Label userEmailLabel;
+    @FXML private Label groupsLabel; // shows groups the student belongs to
 
     // Stats
     @FXML private Label assignedQuizzesCount;
@@ -70,11 +81,13 @@ public class StudentDashboardController {
     // Services
     private final QuizService quizService = ServiceLocator.getQuizService();
     private final AttemptService attemptService = ServiceLocator.getAttemptService();
+    private final com.example.service.GroupService groupService = ServiceLocator.getGroupService();
 
     // Data
     private ObservableList<Quiz> assignedQuizzes;
     private FilteredList<Quiz> filteredQuizzes;
     private User currentUser;
+    @FXML private ComboBox<Group> studentGroupCombo;
 
     @FXML
     private void initialize() {
@@ -167,6 +180,35 @@ public class StudentDashboardController {
                 return quiz.getTitle().toLowerCase().contains(lowerFilter) ||
                        quiz.getDescription().toLowerCase().contains(lowerFilter);
             });
+        });
+    }
+
+    private void setupGroupCombo() {
+        studentGroupCombo.setCellFactory(lv -> new ListCell<>() {
+            @Override
+            protected void updateItem(Group item, boolean empty) {
+                super.updateItem(item, empty);
+                setText((empty || item == null) ? null : item.getName());
+            }
+        });
+        studentGroupCombo.setButtonCell(new ListCell<>() {
+            @Override
+            protected void updateItem(Group item, boolean empty) {
+                super.updateItem(item, empty);
+                setText((empty || item == null) ? null : item.getName());
+            }
+        });
+
+        studentGroupCombo.setOnAction(e -> {
+            Group sel = studentGroupCombo.getValue();
+            if (sel == null) {
+                // show all assigned quizzes
+                filteredQuizzes.setPredicate(q -> true);
+            } else {
+                filteredQuizzes.setPredicate(q -> q.getGroupId() == sel.getId());
+            }
+            // Update assigned count label
+            assignedQuizzesCount.setText(String.valueOf(filteredQuizzes.size()));
         });
     }
 
@@ -310,6 +352,24 @@ public class StudentDashboardController {
         // Load attempt history
         List<QuizAttempt> attempts = attemptService.getAttemptsByStudent(currentUser.getId());
         historyTable.setItems(FXCollections.observableArrayList(attempts));
+
+        // Load groups for this student (may belong to multiple groups)
+        try {
+            List<com.example.model.Group> groups = groupService.getGroupsByStudent(currentUser.getId());
+            if (groups == null || groups.isEmpty()) {
+                groupsLabel.setText("Groups: None");
+                studentGroupCombo.setItems(FXCollections.observableArrayList());
+            } else {
+                String names = String.join(", ", groups.stream().map(com.example.model.Group::getName).toArray(String[]::new));
+                groupsLabel.setText("Groups: " + names);
+                studentGroupCombo.setItems(FXCollections.observableArrayList(groups));
+                studentGroupCombo.getItems().add(0, null); // option to show all
+                studentGroupCombo.setValue(null);
+                setupGroupCombo();
+            }
+        } catch (Exception e) {
+            groupsLabel.setText("Groups: Error loading groups");
+        }
 
         // Update stats
         updateStats(quizzes, attempts);

@@ -1,5 +1,10 @@
 package com.example.ui.controllers;
 
+import java.time.format.DateTimeFormatter;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
 import com.example.model.Group;
 import com.example.model.Quiz;
 import com.example.model.User;
@@ -11,6 +16,7 @@ import com.example.service.ServiceLocator;
 import com.example.service.UserService;
 import com.example.ui.util.SceneManager;
 import com.example.ui.util.SessionManager;
+
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
@@ -18,16 +24,25 @@ import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
-import javafx.scene.control.*;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Button;
+import javafx.scene.control.ButtonBar;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.CheckBox;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.Dialog;
+import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
+import javafx.scene.control.Separator;
+import javafx.scene.control.TableCell;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
+import javafx.scene.control.TextArea;
+import javafx.scene.control.TextField;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
-
-import java.time.format.DateTimeFormatter;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 /**
  * Controller for the Teacher Dashboard.
@@ -151,7 +166,8 @@ public class TeacherDashboardController {
             if (avg == 0 && attemptService.getAttemptsByQuiz(quizId).isEmpty()) {
                 return new SimpleStringProperty("N/A");
             }
-            return new SimpleStringProperty(String.format("%.1f%%", avg));
+            int roundedAvg = (int) Math.round(avg);
+            return new SimpleStringProperty(String.format("%d%%", roundedAvg));
         });
 
         // Color code average scores
@@ -200,7 +216,7 @@ public class TeacherDashboardController {
 
         resultScoreColumn.setCellValueFactory(cellData -> {
             int score = cellData.getValue().getTotalScore();
-            return new SimpleStringProperty(String.format("%.1f%%", score));
+            return new SimpleStringProperty(String.format("%d%%", score));
         });
 
         resultScoreColumn.setCellFactory(column -> new TableCell<>() {

@@ -1,9 +1,10 @@
 package com.example.service;
 
-import com.example.model.Group;
-import com.example.model.User;
 import java.util.List;
 import java.util.Optional;
+
+import com.example.model.Group;
+import com.example.model.User;
 
 /**
  * Service interface for group management operations.
@@ -70,4 +71,10 @@ public interface GroupService {
      * Check if a student is enrolled in a group.
      */
     boolean isStudentEnrolled(int groupId, int studentId);
+
+    /**
+     * Reassign all groups that belong to one teacher to another teacher.
+     * Returns true if the reassignment succeeded (or there were no groups to reassign).
+     */
+    boolean reassignGroups(int fromTeacherId, int toTeacherId);
 }

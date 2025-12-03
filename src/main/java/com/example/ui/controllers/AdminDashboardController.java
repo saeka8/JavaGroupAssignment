@@ -1,5 +1,10 @@
 package com.example.ui.controllers;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
 import com.example.model.Group;
 import com.example.model.Quiz;
 import com.example.model.User;
@@ -10,6 +15,7 @@ import com.example.service.ServiceLocator;
 import com.example.service.UserService;
 import com.example.ui.util.SceneManager;
 import com.example.ui.util.SessionManager;
+
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
@@ -17,16 +23,24 @@ import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
-import javafx.scene.control.*;
+import javafx.scene.control.Alert;
+import javafx.scene.control.ButtonBar;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.CheckBox;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.Dialog;
+import javafx.scene.control.Label;
+import javafx.scene.control.ListCell;
+import javafx.scene.control.PasswordField;
+import javafx.scene.control.ScrollPane;
+import javafx.scene.control.TableCell;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
+import javafx.scene.control.TextField;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 /**
  * Controller for the Admin Dashboard.
@@ -197,6 +211,14 @@ public class AdminDashboardController {
         // Load quizzes
         List<Quiz> quizzes = quizService.getAllQuizzes();
         quizzesTable.setItems(FXCollections.observableArrayList(quizzes));
+
+        // Load groups so the Group Management tab is populated on initial load
+        List<Group> groups = groupService.getAllGroups();
+        allGroups = FXCollections.observableArrayList(groups);
+        groupsTable.setItems(allGroups);
+
+        // Ensure enrollment combos are populated as well
+        loadEnrollmentCombos();
 
         // Update stats
         updateStats();
@@ -397,6 +419,109 @@ public class AdminDashboardController {
 
         Optional<ButtonType> result = confirm.showAndWait();
         if (result.isPresent() && result.get() == ButtonType.OK) {
+            // If deleting a teacher who owns groups, require reassignment first
+            if (selectedUser.getRole() == User.Role.TEACHER) {
+                List<Group> teacherGroups = groupService.getGroupsByTeacher(selectedUser.getId());
+                if (!teacherGroups.isEmpty()) {
+                    // Prepare list of other teachers
+                    List<User> otherTeachers = userService.getUsersByRole(User.Role.TEACHER).stream()
+                            .filter(t -> t.getId() != selectedUser.getId())
+                            .collect(Collectors.toList());
+
+                    if (otherTeachers.isEmpty()) {
+                        showAlert(Alert.AlertType.ERROR, "Cannot Delete Teacher",
+                                "This teacher owns groups and there are no other teachers to reassign them to.\nPlease create or assign another teacher first.");
+                        return;
+                    }
+
+                    // Dialog to choose a new teacher per group
+                    Dialog<Boolean> mappingDialog = new Dialog<>();
+                    mappingDialog.setTitle("Reassign Groups");
+                    mappingDialog.setHeaderText("Select a teacher for each group owned by: " + selectedUser.getFullName());
+                    ButtonType confirmBtn = new ButtonType("Reassign & Delete", ButtonBar.ButtonData.OK_DONE);
+                    mappingDialog.getDialogPane().getButtonTypes().addAll(confirmBtn, ButtonType.CANCEL);
+
+                    VBox content = new VBox(10);
+                    content.setPadding(new Insets(10));
+
+                    // Map groupId -> ComboBox<User>
+                    java.util.Map<Integer, ComboBox<User>> mapping = new java.util.HashMap<>();
+
+                    for (Group g : teacherGroups) {
+                        HBox row = new HBox(10);
+                        Label gLabel = new Label(g.getName());
+                        gLabel.setPrefWidth(220);
+                        ComboBox<User> cb = new ComboBox<>(FXCollections.observableArrayList(otherTeachers));
+                        cb.setCellFactory(lv -> new ListCell<>() {
+                            @Override
+                            protected void updateItem(User item, boolean empty) {
+                                super.updateItem(item, empty);
+                                setText((empty || item == null) ? null : item.getFullName());
+                            }
+                        });
+                        cb.setButtonCell(new ListCell<>() {
+                            @Override
+                            protected void updateItem(User item, boolean empty) {
+                                super.updateItem(item, empty);
+                                setText((empty || item == null) ? null : item.getFullName());
+                            }
+                        });
+                        row.getChildren().addAll(gLabel, cb);
+                        content.getChildren().add(row);
+                        mapping.put(g.getId(), cb);
+                    }
+
+                    ScrollPane sp = new ScrollPane(content);
+                    sp.setPrefSize(520, Math.min(400, 80 + teacherGroups.size() * 40));
+                    mappingDialog.getDialogPane().setContent(sp);
+
+                    mappingDialog.setResultConverter(btn -> {
+                        if (btn == confirmBtn) return Boolean.TRUE;
+                        return null;
+                    });
+
+                    Optional<Boolean> mapRes = mappingDialog.showAndWait();
+                    if (mapRes.isPresent() && mapRes.get()) {
+                        // Validate all selections
+                        for (Group g : teacherGroups) {
+                            ComboBox<User> cb = mapping.get(g.getId());
+                            if (cb.getValue() == null) {
+                                showAlert(Alert.AlertType.ERROR, "Validation Error", "Please select a teacher for group: " + g.getName());
+                                return;
+                            }
+                        }
+
+                        boolean allOk = true;
+                        for (Group g : teacherGroups) {
+                            ComboBox<User> cb = mapping.get(g.getId());
+                            User newTeacher = cb.getValue();
+                            // Update the group's teacher id
+                            g.setTeacherId(newTeacher.getId());
+                            if (!groupService.updateGroup(g)) {
+                                allOk = false;
+                            }
+                        }
+
+                        if (!allOk) {
+                            showAlert(Alert.AlertType.ERROR, "Reassignment Failed", "One or more groups failed to be reassigned. Aborting deletion.");
+                            return;
+                        }
+
+                        // After reassignments, delete the teacher
+                        if (userService.deleteUser(selectedUser.getId())) {
+                            showAlert(Alert.AlertType.INFORMATION, "User Deleted",
+                                    "User '" + selectedUser.getFullName() + "' has been deleted and their groups reassigned.");
+                            loadData();
+                        }
+                        return;
+                    } else {
+                        // Cancelled
+                        return;
+                    }
+                }
+            }
+
+            // Default path: no reassignment needed
             if (userService.deleteUser(selectedUser.getId())) {
                 showAlert(Alert.AlertType.INFORMATION, "User Deleted",
                         "User '" + selectedUser.getFullName() + "' has been deleted.");
