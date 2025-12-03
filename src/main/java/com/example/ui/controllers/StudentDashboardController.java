@@ -14,7 +14,6 @@ import com.example.database.RetrieveFromDatabase;
 import com.example.model.Group;
 import com.example.model.Quiz;
 import com.example.model.User;
-import com.example.quizlogic.Analytics;
 import com.example.quizlogic.QuizAttempt;
 import com.example.quizlogic.Question;
 import com.example.service.AttemptService;
