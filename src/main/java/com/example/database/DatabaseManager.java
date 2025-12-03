@@ -1,4 +1,5 @@
 package com.example.database;
+
 import com.example.model.User;
 
 import javax.swing.*;
@@ -11,21 +12,25 @@ import static com.example.model.User.Role.*;
 public class DatabaseManager {
 
     // ======= CONNECTING DATABASE ======
-    public static Connection connectWithDatabase(){
-        // 1. The Connection String
-        final String URL = "jdbc:sqlite:group5Quiz.db"; // "jdbc:sqlite:" is the protocol
+    public static Connection connectWithDatabase() {
+        // Try to find the database in the current directory first
+        // This allows the professor to run it from anywhere with the database present
+        String dbPath = "group5Quiz.db";
+        java.io.File dbFile = new java.io.File(dbPath);
+
+        // If database doesn't exist in current directory, use it anyway
+        // SQLite will create it if needed
+        final String URL = "jdbc:sqlite:" + dbPath;
         System.out.println("Connecting to database...");
-        // 2. Establish Connection
-        // DriverManager asks the driver to open a link to the URL
+
+        // Establish Connection
         try {
             Connection conn = DriverManager.getConnection(URL);
             if (conn != null) {
                 System.out.println("Connected to SQLite successfully!");
-                // We will call our helper methods here later
                 return conn;
             }
         } catch (SQLException e) {
-            // If something goes wrong (like the driver is missing), this prints the error.
             System.out.println("Error: " + e.getMessage());
         }
         return null;
@@ -43,6 +48,7 @@ public class DatabaseManager {
         createScoresTable(conn);
         createMcqStudentAnswerTable(conn);
     }
+
     // People table
     private static void createPeopleTable(Connection conn) throws SQLException {
         // SQL to create a table named 'people' with 6 columns
@@ -195,5 +201,3 @@ public class DatabaseManager {
     }
 
 }
-
-
