@@ -59,7 +59,7 @@ public interface AttemptService {
     /**
      * Get average score for a quiz.
      */
-    default double getAverageScoreForQuiz(int quizId) {                   // UPDATED
+    default double getAverageScoreForQuiz(int quizId) {                   
         return getAttemptsByQuiz(quizId).stream()
                 .mapToInt(QuizAttempt::getTotalScore)
                 .average()
@@ -69,7 +69,7 @@ public interface AttemptService {
     /**
      * Get average score for a student across all quizzes.
      */
-    default double getAverageScoreForStudent(int studentId) {             // UPDATED
+    default double getAverageScoreForStudent(int studentId) {             
         return getAttemptsByStudent(studentId).stream()
                 .mapToInt(QuizAttempt::getTotalScore)
                 .average()
@@ -106,7 +106,7 @@ public interface AttemptService {
      * NEW — required by QuizTakeController
      * Count how many attempts a student has made on a quiz.
      */
-    default int getAttemptCount(int studentId, int quizId) {              // NEW
+    default int getAttemptCount(int studentId, int quizId) {          
         return getStudentAttemptsForQuiz(studentId, quizId).size();
     }
 }

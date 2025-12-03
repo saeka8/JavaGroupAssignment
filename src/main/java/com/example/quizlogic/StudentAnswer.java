@@ -26,13 +26,4 @@ public class StudentAnswer {
     public boolean isCorrect() {
         return isCorrect;
     }
-    public int getAssignedScore() {
-        return assignedScore;
-    }
-    public int getScoreEarned() {
-        return scoreEarned;
-    }
-    public int getAttemptNumber() {
-        return attemptNumber;
-    }
 }
