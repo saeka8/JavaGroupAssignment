@@ -10,25 +10,70 @@ import static com.example.model.User.Role.*;
 
 public class DatabaseManager {
 
+    // Singleton connection instance for data persistence
+    private static Connection connection = null;
+    private static final String URL = "jdbc:sqlite:group5Quiz.db";
+
     // ======= CONNECTING DATABASE ======
     public static Connection connectWithDatabase(){
-        // 1. The Connection String
-        final String URL = "jdbc:sqlite:group5Quiz.db"; // "jdbc:sqlite:" is the protocol
+        // Return existing connection if already established
+        if (connection != null) {
+            try {
+                // Check if connection is still valid
+                if (!connection.isClosed()) {
+                    return connection;
+                }
+            } catch (SQLException e) {
+                System.err.println("Error checking connection status: " + e.getMessage());
+            }
+        }
+
+        // Create new connection if needed
         System.out.println("Connecting to database...");
-        // 2. Establish Connection
-        // DriverManager asks the driver to open a link to the URL
         try {
-            Connection conn = DriverManager.getConnection(URL);
-            if (conn != null) {
+            connection = DriverManager.getConnection(URL);
+            if (connection != null) {
                 System.out.println("Connected to SQLite successfully!");
-                // We will call our helper methods here later
-                return conn;
+                return connection;
             }
         } catch (SQLException e) {
-            // If something goes wrong (like the driver is missing), this prints the error.
             System.out.println("Error: " + e.getMessage());
         }
         return null;
+    }
+
+    /**
+     * Get the singleton database connection.
+     * Ensures data persistence throughout application lifecycle.
+     */
+    public static Connection getConnection() {
+        if (connection == null) {
+            return connectWithDatabase();
+        }
+        try {
+            if (connection.isClosed()) {
+                return connectWithDatabase();
+            }
+        } catch (SQLException e) {
+            System.err.println("Error checking connection: " + e.getMessage());
+            return connectWithDatabase();
+        }
+        return connection;
+    }
+
+    /**
+     * Close the database connection.
+     * Should be called when the application shuts down.
+     */
+    public static void closeConnection() {
+        if (connection != null) {
+            try {
+                connection.close();
+                System.out.println("Database connection closed.");
+            } catch (SQLException e) {
+                System.err.println("Error closing connection: " + e.getMessage());
+            }
+        }
     }
 
     // ========= CREATING TABLES ==========
@@ -40,6 +85,7 @@ public class DatabaseManager {
         createQuizTable(conn);
         createMCQTable(conn);
         createQuizQuestionTable(conn);
+        createQuizAssignmentTable(conn);
         createScoresTable(conn);
         createMcqStudentAnswerTable(conn);
     }
@@ -149,6 +195,25 @@ public class DatabaseManager {
             // Execute the SQL command
             stmt.execute(sql);
             System.out.println("Table 'quizQuestion' is ready.");
+        }
+    }
+
+    // Quiz Assignment (tracks which quizzes are assigned to which students)
+    private static void createQuizAssignmentTable(Connection conn) throws SQLException {
+        // SQL to create a table named 'quiz_assignment' with 2 columns
+        String sql = "CREATE TABLE IF NOT EXISTS quiz_assignment (\n"
+                + " quiz_id integer NOT NULL,\n"
+                + " student_id integer NOT NULL,\n"
+                + " assigned_date date,\n"
+                + " PRIMARY KEY (quiz_id, student_id),\n"
+                + " FOREIGN KEY (quiz_id) REFERENCES quiz(id),\n"
+                + " FOREIGN KEY (student_id) REFERENCES people(id)\n"
+                + ");";
+        // Create a Statement object to carry the SQL
+        try (Statement stmt = conn.createStatement()) {
+            // Execute the SQL command
+            stmt.execute(sql);
+            System.out.println("Table 'quiz_assignment' is ready.");
         }
     }
 

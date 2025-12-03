@@ -20,8 +20,8 @@ public class DatabaseAuthService implements AuthService {
     private final Connection conn;
 
     public DatabaseAuthService() {
-        // Get database connection
-        this.conn = DatabaseManager.connectWithDatabase();
+        // Get singleton database connection for data persistence
+        this.conn = DatabaseManager.getConnection();
         if (conn == null) {
             throw new RuntimeException("Failed to connect to database");
         }
@@ -30,9 +30,12 @@ public class DatabaseAuthService implements AuthService {
     @Override
     public Optional<User> login(String email, String password) {
         String sql = "SELECT id, name, lastname, role FROM people WHERE email='" + email.trim() + "' AND password='" + password + "'";
+        Statement stmt = null;
+        ResultSet rs = null;
 
-        try (Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery(sql)) {
+        try {
+            stmt = conn.createStatement();
+            rs = stmt.executeQuery(sql);
 
             if (rs.next()) {
                 int id = rs.getInt("id");
@@ -55,6 +58,13 @@ public class DatabaseAuthService implements AuthService {
             }
         } catch (SQLException e) {
             System.err.println("Login error: " + e.getMessage());
+        } finally {
+            try {
+                if (rs != null) rs.close();
+                if (stmt != null) stmt.close();
+            } catch (SQLException e) {
+                System.err.println("Error closing resources: " + e.getMessage());
+            }
         }
 
         return Optional.empty();
@@ -86,9 +96,12 @@ public class DatabaseAuthService implements AuthService {
     @Override
     public boolean emailExists(String email) {
         String sql = "SELECT COUNT(*) as count FROM people WHERE email='" + email.trim() + "'";
+        Statement stmt = null;
+        ResultSet rs = null;
 
-        try (Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery(sql)) {
+        try {
+            stmt = conn.createStatement();
+            rs = stmt.executeQuery(sql);
 
             if (rs.next()) {
                 int count = rs.getInt("count");
@@ -96,6 +109,13 @@ public class DatabaseAuthService implements AuthService {
             }
         } catch (SQLException e) {
             System.err.println("Email check error: " + e.getMessage());
+        } finally {
+            try {
+                if (rs != null) rs.close();
+                if (stmt != null) stmt.close();
+            } catch (SQLException e) {
+                System.err.println("Error closing resources: " + e.getMessage());
+            }
         }
 
         return false;

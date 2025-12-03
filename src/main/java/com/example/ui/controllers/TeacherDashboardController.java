@@ -2,6 +2,7 @@ package com.example.ui.controllers;
 
 import com.example.model.Quiz;
 import com.example.model.User;
+import com.example.quizlogic.Question;
 import com.example.quizlogic.QuizAttempt;
 import com.example.service.AttemptService;
 import com.example.service.QuizService;
@@ -284,9 +285,201 @@ public class TeacherDashboardController {
         result.ifPresent(quiz -> {
             showAlert(Alert.AlertType.INFORMATION, "Quiz Created", 
                     "Quiz '" + quiz.getTitle() + "' created successfully!\n\n" +
-                    "Note: You can add questions to this quiz in a future update.");
+                    "You can now add questions to this quiz.");
             loadData();
         });
+    }
+
+    @FXML
+    private void handleManageQuestions() {
+        Quiz selectedQuiz = quizzesTable.getSelectionModel().getSelectedItem();
+        if (selectedQuiz == null) {
+            showAlert(Alert.AlertType.WARNING, "No Quiz Selected", 
+                    "Please select a quiz from the table to manage questions.");
+            return;
+        }
+
+        // Show dialog to manage questions
+        Dialog<ButtonType> dialog = new Dialog<>();
+        dialog.setTitle("Manage Questions - " + selectedQuiz.getTitle());
+        dialog.setHeaderText("Add questions to the quiz");
+
+        ButtonType addQuestionButton = new ButtonType("Add Question", ButtonBar.ButtonData.OK_DONE);
+        ButtonType doneButton = new ButtonType("Done", ButtonBar.ButtonData.CANCEL_CLOSE);
+        dialog.getDialogPane().getButtonTypes().addAll(addQuestionButton, doneButton);
+
+        VBox content = new VBox(10);
+        content.setPadding(new Insets(20));
+
+        // Display current questions
+        Label questionsLabel = new Label("Current Questions: " + selectedQuiz.getQuestionCount());
+        questionsLabel.setStyle("-fx-font-weight: bold;");
+        
+        ListView<String> questionsList = new ListView<>();
+        List<Question> questions = quizService.getQuestionsByQuiz(selectedQuiz.getId());
+        ObservableList<String> questionTexts = FXCollections.observableArrayList();
+        for (int i = 0; i < questions.size(); i++) {
+            Question q = questions.get(i);
+            questionTexts.add((i + 1) + ". " + q.getText() + " (Correct: " + q.getCorrectAnswer() + ", Points: " + q.getAssignedScore() + ")");
+        }
+        questionsList.setItems(questionTexts);
+        questionsList.setPrefHeight(200);
+
+        content.getChildren().addAll(questionsLabel, questionsList);
+        dialog.getDialogPane().setContent(content);
+        dialog.getDialogPane().setPrefWidth(600);
+
+        // Handle the add question button
+        while (true) {
+            Optional<ButtonType> result = dialog.showAndWait();
+            if (result.isPresent() && result.get() == addQuestionButton) {
+                // Show add question dialog
+                Optional<Question> newQuestion = showAddQuestionDialog();
+                if (newQuestion.isPresent()) {
+                    Question addedQuestion = quizService.addQuestion(selectedQuiz.getId(), newQuestion.get());
+                    // Refresh the questions list
+                    questions.add(addedQuestion);
+                    questionTexts.add(questions.size() + ". " + addedQuestion.getText() + 
+                                    " (Correct: " + addedQuestion.getCorrectAnswer() + 
+                                    ", Points: " + addedQuestion.getAssignedScore() + ")");
+                    questionsLabel.setText("Current Questions: " + questions.size());
+                }
+            } else {
+                break;
+            }
+        }
+        
+        loadData(); // Refresh the table
+    }
+
+    private Optional<Question> showAddQuestionDialog() {
+        Dialog<Question> dialog = new Dialog<>();
+        dialog.setTitle("Add Question");
+        dialog.setHeaderText("Enter question details");
+
+        ButtonType addButton = new ButtonType("Add", ButtonBar.ButtonData.OK_DONE);
+        dialog.getDialogPane().getButtonTypes().addAll(addButton, ButtonType.CANCEL);
+
+        GridPane grid = new GridPane();
+        grid.setHgap(10);
+        grid.setVgap(10);
+        grid.setPadding(new Insets(20, 20, 10, 10));
+
+        TextArea questionField = new TextArea();
+        questionField.setPromptText("Enter the question");
+        questionField.setPrefRowCount(2);
+        questionField.setWrapText(true);
+
+        TextField optionAField = new TextField();
+        optionAField.setPromptText("Option A");
+
+        TextField optionBField = new TextField();
+        optionBField.setPromptText("Option B");
+
+        TextField optionCField = new TextField();
+        optionCField.setPromptText("Option C");
+
+        TextField optionDField = new TextField();
+        optionDField.setPromptText("Option D");
+
+        ComboBox<String> correctAnswerCombo = new ComboBox<>();
+        correctAnswerCombo.getItems().addAll("A", "B", "C", "D");
+        correctAnswerCombo.setValue("A");
+
+        TextField pointsField = new TextField();
+        pointsField.setPromptText("Points (e.g., 10)");
+        pointsField.setText("10");
+
+        grid.add(new Label("Question:"), 0, 0);
+        grid.add(questionField, 1, 0, 2, 1);
+        grid.add(new Label("Option A:"), 0, 1);
+        grid.add(optionAField, 1, 1, 2, 1);
+        grid.add(new Label("Option B:"), 0, 2);
+        grid.add(optionBField, 1, 2, 2, 1);
+        grid.add(new Label("Option C:"), 0, 3);
+        grid.add(optionCField, 1, 3, 2, 1);
+        grid.add(new Label("Option D:"), 0, 4);
+        grid.add(optionDField, 1, 4, 2, 1);
+        grid.add(new Label("Correct Answer:"), 0, 5);
+        grid.add(correctAnswerCombo, 1, 5);
+        grid.add(new Label("Points:"), 0, 6);
+        grid.add(pointsField, 1, 6);
+
+        dialog.getDialogPane().setContent(grid);
+        dialog.getDialogPane().setPrefWidth(500);
+
+        // Enable/disable add button based on input
+        Button addButtonNode = (Button) dialog.getDialogPane().lookupButton(addButton);
+        addButtonNode.setDisable(true);
+
+        // Validation
+        questionField.textProperty().addListener((obs, old, newVal) -> {
+            addButtonNode.setDisable(newVal.trim().isEmpty() || 
+                                    optionAField.getText().trim().isEmpty() ||
+                                    optionBField.getText().trim().isEmpty() ||
+                                    optionCField.getText().trim().isEmpty() ||
+                                    optionDField.getText().trim().isEmpty());
+        });
+
+        optionAField.textProperty().addListener((obs, old, newVal) -> {
+            addButtonNode.setDisable(questionField.getText().trim().isEmpty() ||
+                                    newVal.trim().isEmpty() ||
+                                    optionBField.getText().trim().isEmpty() ||
+                                    optionCField.getText().trim().isEmpty() ||
+                                    optionDField.getText().trim().isEmpty());
+        });
+
+        optionBField.textProperty().addListener((obs, old, newVal) -> {
+            addButtonNode.setDisable(questionField.getText().trim().isEmpty() ||
+                                    optionAField.getText().trim().isEmpty() ||
+                                    newVal.trim().isEmpty() ||
+                                    optionCField.getText().trim().isEmpty() ||
+                                    optionDField.getText().trim().isEmpty());
+        });
+
+        optionCField.textProperty().addListener((obs, old, newVal) -> {
+            addButtonNode.setDisable(questionField.getText().trim().isEmpty() ||
+                                    optionAField.getText().trim().isEmpty() ||
+                                    optionBField.getText().trim().isEmpty() ||
+                                    newVal.trim().isEmpty() ||
+                                    optionDField.getText().trim().isEmpty());
+        });
+
+        optionDField.textProperty().addListener((obs, old, newVal) -> {
+            addButtonNode.setDisable(questionField.getText().trim().isEmpty() ||
+                                    optionAField.getText().trim().isEmpty() ||
+                                    optionBField.getText().trim().isEmpty() ||
+                                    optionCField.getText().trim().isEmpty() ||
+                                    newVal.trim().isEmpty());
+        });
+
+        dialog.setResultConverter(dialogButton -> {
+            if (dialogButton == addButton) {
+                try {
+                    String questionText = questionField.getText().trim();
+                    String optionA = optionAField.getText().trim();
+                    String optionB = optionBField.getText().trim();
+                    String optionC = optionCField.getText().trim();
+                    String optionD = optionDField.getText().trim();
+                    char correctAnswer = correctAnswerCombo.getValue().charAt(0);
+                    int points = Integer.parseInt(pointsField.getText().trim());
+
+                    if (points <= 0) {
+                        showAlert(Alert.AlertType.ERROR, "Invalid Points", "Points must be greater than 0.");
+                        return null;
+                    }
+
+                    // Create question with ID 0 (will be assigned by database)
+                    return new Question(0, questionText, optionA, optionB, optionC, optionD, correctAnswer, points);
+                } catch (NumberFormatException e) {
+                    showAlert(Alert.AlertType.ERROR, "Invalid Points", "Please enter a valid number for points.");
+                    return null;
+                }
+            }
+            return null;
+        });
+
+        return dialog.showAndWait();
     }
 
     @FXML

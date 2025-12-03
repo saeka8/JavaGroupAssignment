@@ -92,7 +92,10 @@
                                 <Button text="↻ Refresh" onAction="#handleRefresh"
                                         style="-fx-background-color: transparent; -fx-text-fill: #6c757d; -fx-border-color: #dee2e6; -fx-border-radius: 5; -fx-background-radius: 5; -fx-padding: 8 14; -fx-cursor: hand;"/>
                                 
-                                <Button text="🗑 Delete" onAction="#handleDeleteQuiz"
+                                <Button text="� Questions" onAction="#handleManageQuestions"
+                                        style="-fx-background-color: #17a2b8; -fx-text-fill: white; -fx-padding: 8 14; -fx-background-radius: 5; -fx-cursor: hand;"/>
+                                
+                                <Button text="�🗑 Delete" onAction="#handleDeleteQuiz"
                                         style="-fx-background-color: #dc3545; -fx-text-fill: white; -fx-padding: 8 14; -fx-background-radius: 5; -fx-cursor: hand;"/>
                                 
                                 <Button text="📤 Assign" onAction="#handleAssignQuiz"
@@ -117,7 +120,7 @@
                                 </placeholder>
                             </TableView>
 
-                            <Label text="💡 Select a quiz to assign it to students or view detailed results" 
+                            <Label text="💡 Select a quiz and click 'Questions' to add questions, 'Assign' to assign it to students, or view detailed results" 
                                    style="-fx-font-size: 12px; -fx-text-fill: #6c757d;"/>
                         </VBox>
                     </Tab>

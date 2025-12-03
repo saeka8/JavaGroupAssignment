@@ -24,10 +24,17 @@ public class Main extends Application {
     }
 
     public static void main(String[] args) throws SQLException {
-        // Connect with database
-        Connection conn = DatabaseManager.connectWithDatabase();
+        // Connect with database (singleton connection for data persistence)
+        Connection conn = DatabaseManager.getConnection();
+        
         // Create all the tables if necessary
         DatabaseManager.createAllTables(conn);
+
+        // Add shutdown hook to properly close database connection on exit
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            System.out.println("Application shutting down...");
+            DatabaseManager.closeConnection();
+        }));
 
         launch(args);
     }

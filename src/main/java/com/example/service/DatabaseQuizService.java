@@ -23,7 +23,8 @@ public class DatabaseQuizService implements QuizService {
     private final UserService userService;
 
     public DatabaseQuizService(UserService userService) {
-        this.conn = DatabaseManager.connectWithDatabase();
+        // Get singleton database connection for data persistence
+        this.conn = DatabaseManager.getConnection();
         if (conn == null) {
             throw new RuntimeException("Failed to connect to database");
         }
@@ -48,43 +49,62 @@ public class DatabaseQuizService implements QuizService {
     public boolean updateQuiz(Quiz quiz) {
         String sql = "UPDATE quiz SET quiz_name='" + quiz.getTitle() + "', description='" + quiz.getDescription() +
                      "' WHERE id=" + quiz.getId();
+        Statement stmt = null;
 
-        try (Statement stmt = conn.createStatement()) {
+        try {
+            stmt = conn.createStatement();
             int rowsAffected = stmt.executeUpdate(sql);
             return rowsAffected > 0;
         } catch (SQLException e) {
             System.err.println("Error updating quiz: " + e.getMessage());
             return false;
+        } finally {
+            try {
+                if (stmt != null) stmt.close();
+            } catch (SQLException e) {
+                System.err.println("Error closing resources: " + e.getMessage());
+            }
         }
     }
 
     @Override
     public boolean deleteQuiz(int quizId) {
+        Statement stmt = null;
+        
         try {
             // Delete related records first
             String deleteQuestions = "DELETE FROM quizQuestion WHERE quiz_id=" + quizId;
             String deleteScores = "DELETE FROM scores WHERE quiz_id=" + quizId;
             String deleteQuiz = "DELETE FROM quiz WHERE id=" + quizId;
 
-            try (Statement stmt = conn.createStatement()) {
-                stmt.executeUpdate(deleteQuestions);
-                stmt.executeUpdate(deleteScores);
-                int rowsAffected = stmt.executeUpdate(deleteQuiz);
-                return rowsAffected > 0;
-            }
+            stmt = conn.createStatement();
+            stmt.executeUpdate(deleteQuestions);
+            stmt.executeUpdate(deleteScores);
+            int rowsAffected = stmt.executeUpdate(deleteQuiz);
+            return rowsAffected > 0;
         } catch (SQLException e) {
             System.err.println("Error deleting quiz: " + e.getMessage());
             return false;
+        } finally {
+            try {
+                if (stmt != null) stmt.close();
+            } catch (SQLException e) {
+                System.err.println("Error closing resources: " + e.getMessage());
+            }
         }
     }
 
     @Override
     public Optional<Quiz> getQuizById(int quizId) {
-        String sql = "SELECT q.id, q.quiz_name, q.description, q.group_id, g.teacher_id " +
+        String sql = "SELECT q.id, q.quiz_name, q.description, q.group_id, " +
+                     "COALESCE(g.teacher_id, q.group_id) as teacher_id " +
                      "FROM quiz q LEFT JOIN groups g ON q.group_id = g.id WHERE q.id=" + quizId;
+        Statement stmt = null;
+        ResultSet rs = null;
 
-        try (Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery(sql)) {
+        try {
+            stmt = conn.createStatement();
+            rs = stmt.executeQuery(sql);
 
             if (rs.next()) {
                 Quiz quiz = extractQuizFromResultSet(rs);
@@ -93,6 +113,13 @@ public class DatabaseQuizService implements QuizService {
             }
         } catch (SQLException e) {
             System.err.println("Error getting quiz by ID: " + e.getMessage());
+        } finally {
+            try {
+                if (rs != null) rs.close();
+                if (stmt != null) stmt.close();
+            } catch (SQLException e) {
+                System.err.println("Error closing resources: " + e.getMessage());
+            }
         }
 
         return Optional.empty();
@@ -101,11 +128,16 @@ public class DatabaseQuizService implements QuizService {
     @Override
     public List<Quiz> getAllQuizzes() {
         List<Quiz> quizzes = new ArrayList<>();
-        String sql = "SELECT q.id, q.quiz_name, q.description, q.group_id, g.teacher_id " +
+        // Updated query to handle quizzes with or without groups
+        String sql = "SELECT q.id, q.quiz_name, q.description, q.group_id, " +
+                     "COALESCE(g.teacher_id, q.group_id) as teacher_id " +
                      "FROM quiz q LEFT JOIN groups g ON q.group_id = g.id";
+        Statement stmt = null;
+        ResultSet rs = null;
 
-        try (Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery(sql)) {
+        try {
+            stmt = conn.createStatement();
+            rs = stmt.executeQuery(sql);
 
             while (rs.next()) {
                 Quiz quiz = extractQuizFromResultSet(rs);
@@ -114,6 +146,13 @@ public class DatabaseQuizService implements QuizService {
             }
         } catch (SQLException e) {
             System.err.println("Error getting all quizzes: " + e.getMessage());
+        } finally {
+            try {
+                if (rs != null) rs.close();
+                if (stmt != null) stmt.close();
+            } catch (SQLException e) {
+                System.err.println("Error closing resources: " + e.getMessage());
+            }
         }
 
         return quizzes;
@@ -122,11 +161,17 @@ public class DatabaseQuizService implements QuizService {
     @Override
     public List<Quiz> getQuizzesByTeacher(int teacherId) {
         List<Quiz> quizzes = new ArrayList<>();
-        String sql = "SELECT q.id, q.quiz_name, q.description, q.group_id, g.teacher_id " +
-                     "FROM quiz q LEFT JOIN groups g ON q.group_id = g.id WHERE g.teacher_id=" + teacherId;
+        // Updated query to get quizzes either through groups OR directly by teacher_id stored in group_id field
+        String sql = "SELECT q.id, q.quiz_name, q.description, q.group_id, " +
+                     "COALESCE(g.teacher_id, q.group_id) as teacher_id " +
+                     "FROM quiz q LEFT JOIN groups g ON q.group_id = g.id " +
+                     "WHERE COALESCE(g.teacher_id, q.group_id) = " + teacherId;
+        Statement stmt = null;
+        ResultSet rs = null;
 
-        try (Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery(sql)) {
+        try {
+            stmt = conn.createStatement();
+            rs = stmt.executeQuery(sql);
 
             while (rs.next()) {
                 Quiz quiz = extractQuizFromResultSet(rs);
@@ -135,6 +180,13 @@ public class DatabaseQuizService implements QuizService {
             }
         } catch (SQLException e) {
             System.err.println("Error getting quizzes by teacher: " + e.getMessage());
+        } finally {
+            try {
+                if (rs != null) rs.close();
+                if (stmt != null) stmt.close();
+            } catch (SQLException e) {
+                System.err.println("Error closing resources: " + e.getMessage());
+            }
         }
 
         return quizzes;
@@ -143,12 +195,16 @@ public class DatabaseQuizService implements QuizService {
     @Override
     public List<Quiz> searchQuizzes(String query) {
         List<Quiz> quizzes = new ArrayList<>();
-        String sql = "SELECT q.id, q.quiz_name, q.description, q.group_id, g.teacher_id " +
+        String sql = "SELECT q.id, q.quiz_name, q.description, q.group_id, " +
+                     "COALESCE(g.teacher_id, q.group_id) as teacher_id " +
                      "FROM quiz q LEFT JOIN groups g ON q.group_id = g.id " +
                      "WHERE q.quiz_name LIKE '%" + query + "%' OR q.description LIKE '%" + query + "%'";
+        Statement stmt = null;
+        ResultSet rs = null;
 
-        try (Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery(sql)) {
+        try {
+            stmt = conn.createStatement();
+            rs = stmt.executeQuery(sql);
 
             while (rs.next()) {
                 Quiz quiz = extractQuizFromResultSet(rs);
@@ -157,6 +213,13 @@ public class DatabaseQuizService implements QuizService {
             }
         } catch (SQLException e) {
             System.err.println("Error searching quizzes: " + e.getMessage());
+        } finally {
+            try {
+                if (rs != null) rs.close();
+                if (stmt != null) stmt.close();
+            } catch (SQLException e) {
+                System.err.println("Error closing resources: " + e.getMessage());
+            }
         }
 
         return quizzes;
@@ -207,31 +270,46 @@ public class DatabaseQuizService implements QuizService {
                      "', correct_option='" + question.getCorrectAnswer() +
                      "', assigned_score=" + question.getAssignedScore() +
                      " WHERE id=" + question.getId();
+        Statement stmt = null;
 
-        try (Statement stmt = conn.createStatement()) {
+        try {
+            stmt = conn.createStatement();
             int rowsAffected = stmt.executeUpdate(sql);
             return rowsAffected > 0;
         } catch (SQLException e) {
             System.err.println("Error updating question: " + e.getMessage());
             return false;
+        } finally {
+            try {
+                if (stmt != null) stmt.close();
+            } catch (SQLException e) {
+                System.err.println("Error closing resources: " + e.getMessage());
+            }
         }
     }
 
     @Override
     public boolean deleteQuestion(int questionId) {
+        Statement stmt = null;
+        
         try {
             // Delete from linking table first
             String deleteLink = "DELETE FROM quizQuestion WHERE question_id=" + questionId;
             String deleteQuestion = "DELETE FROM mcq WHERE id=" + questionId;
 
-            try (Statement stmt = conn.createStatement()) {
-                stmt.executeUpdate(deleteLink);
-                int rowsAffected = stmt.executeUpdate(deleteQuestion);
-                return rowsAffected > 0;
-            }
+            stmt = conn.createStatement();
+            stmt.executeUpdate(deleteLink);
+            int rowsAffected = stmt.executeUpdate(deleteQuestion);
+            return rowsAffected > 0;
         } catch (SQLException e) {
             System.err.println("Error deleting question: " + e.getMessage());
             return false;
+        } finally {
+            try {
+                if (stmt != null) stmt.close();
+            } catch (SQLException e) {
+                System.err.println("Error closing resources: " + e.getMessage());
+            }
         }
     }
 
@@ -240,15 +318,25 @@ public class DatabaseQuizService implements QuizService {
         List<Question> questions = new ArrayList<>();
         String sql = "SELECT m.id, m.question, m.optionA, m.optionB, m.optionC, m.optionD, m.correct_option, m.assigned_score " +
                      "FROM mcq m INNER JOIN quizQuestion qq ON m.id = qq.question_id WHERE qq.quiz_id=" + quizId;
+        Statement stmt = null;
+        ResultSet rs = null;
 
-        try (Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery(sql)) {
+        try {
+            stmt = conn.createStatement();
+            rs = stmt.executeQuery(sql);
 
             while (rs.next()) {
                 questions.add(extractQuestionFromResultSet(rs));
             }
         } catch (SQLException e) {
             System.err.println("Error getting questions by quiz: " + e.getMessage());
+        } finally {
+            try {
+                if (rs != null) rs.close();
+                if (stmt != null) stmt.close();
+            } catch (SQLException e) {
+                System.err.println("Error closing resources: " + e.getMessage());
+            }
         }
 
         return questions;
@@ -256,13 +344,11 @@ public class DatabaseQuizService implements QuizService {
 
     @Override
     public boolean assignQuizToStudent(int quizId, int studentId) {
-        // In your schema, this would use the enrollment table
-        // For now, we'll use a simple approach - you may need to adjust based on your group logic
         try {
-            // This is a placeholder - you'll need to implement based on your group/enrollment logic
-            System.out.println("Assigning quiz " + quizId + " to student " + studentId);
+            InsertIntoDatabase.insertQuizAssignment(conn, quizId, studentId);
+            System.out.println("Assigned quiz " + quizId + " to student " + studentId);
             return true;
-        } catch (Exception e) {
+        } catch (SQLException e) {
             System.err.println("Error assigning quiz: " + e.getMessage());
             return false;
         }
@@ -281,16 +367,19 @@ public class DatabaseQuizService implements QuizService {
 
     @Override
     public List<Quiz> getAssignedQuizzes(int studentId) {
-        // Get quizzes from groups the student is enrolled in
+        // Get quizzes that are explicitly assigned to the student via quiz_assignment table
         List<Quiz> quizzes = new ArrayList<>();
         String sql = "SELECT DISTINCT q.id, q.quiz_name, q.description, q.group_id, g.teacher_id " +
                      "FROM quiz q " +
-                     "INNER JOIN groups g ON q.group_id = g.id " +
-                     "INNER JOIN enrollment e ON g.id = e.group_id " +
-                     "WHERE e.student_id=" + studentId;
+                     "INNER JOIN quiz_assignment qa ON q.id = qa.quiz_id " +
+                     "LEFT JOIN groups g ON q.group_id = g.id " +
+                     "WHERE qa.student_id=" + studentId;
+        Statement stmt = null;
+        ResultSet rs = null;
 
-        try (Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery(sql)) {
+        try {
+            stmt = conn.createStatement();
+            rs = stmt.executeQuery(sql);
 
             while (rs.next()) {
                 Quiz quiz = extractQuizFromResultSet(rs);
@@ -299,6 +388,13 @@ public class DatabaseQuizService implements QuizService {
             }
         } catch (SQLException e) {
             System.err.println("Error getting assigned quizzes: " + e.getMessage());
+        } finally {
+            try {
+                if (rs != null) rs.close();
+                if (stmt != null) stmt.close();
+            } catch (SQLException e) {
+                System.err.println("Error closing resources: " + e.getMessage());
+            }
         }
 
         return quizzes;
@@ -313,15 +409,25 @@ public class DatabaseQuizService implements QuizService {
                      "INNER JOIN groups g ON e.group_id = g.id " +
                      "INNER JOIN quiz q ON g.id = q.group_id " +
                      "WHERE q.id=" + quizId + " AND p.role='student'";
+        Statement stmt = null;
+        ResultSet rs = null;
 
-        try (Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery(sql)) {
+        try {
+            stmt = conn.createStatement();
+            rs = stmt.executeQuery(sql);
 
             while (rs.next()) {
                 students.add(extractUserFromResultSet(rs));
             }
         } catch (SQLException e) {
             System.err.println("Error getting students assigned to quiz: " + e.getMessage());
+        } finally {
+            try {
+                if (rs != null) rs.close();
+                if (stmt != null) stmt.close();
+            } catch (SQLException e) {
+                System.err.println("Error closing resources: " + e.getMessage());
+            }
         }
 
         return students;
@@ -334,15 +440,25 @@ public class DatabaseQuizService implements QuizService {
                      "INNER JOIN groups g ON e.group_id = g.id " +
                      "INNER JOIN quiz q ON g.id = q.group_id " +
                      "WHERE q.id=" + quizId + " AND e.student_id=" + studentId;
+        Statement stmt = null;
+        ResultSet rs = null;
 
-        try (Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery(sql)) {
+        try {
+            stmt = conn.createStatement();
+            rs = stmt.executeQuery(sql);
 
             if (rs.next()) {
                 return rs.getInt("count") > 0;
             }
         } catch (SQLException e) {
-            System.err.println("Error checking quiz assignment: " + e.getMessage());
+            System.err.println("Error checking if quiz is assigned: " + e.getMessage());
+        } finally {
+            try {
+                if (rs != null) rs.close();
+                if (stmt != null) stmt.close();
+            } catch (SQLException e) {
+                System.err.println("Error closing resources: " + e.getMessage());
+            }
         }
 
         return false;
@@ -351,15 +467,25 @@ public class DatabaseQuizService implements QuizService {
     @Override
     public int getTotalQuizCount() {
         String sql = "SELECT COUNT(*) as count FROM quiz";
+        Statement stmt = null;
+        ResultSet rs = null;
 
-        try (Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery(sql)) {
+        try {
+            stmt = conn.createStatement();
+            rs = stmt.executeQuery(sql);
 
             if (rs.next()) {
                 return rs.getInt("count");
             }
         } catch (SQLException e) {
             System.err.println("Error getting total quiz count: " + e.getMessage());
+        } finally {
+            try {
+                if (rs != null) rs.close();
+                if (stmt != null) stmt.close();
+            } catch (SQLException e) {
+                System.err.println("Error closing resources: " + e.getMessage());
+            }
         }
 
         return 0;

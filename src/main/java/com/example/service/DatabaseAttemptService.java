@@ -26,7 +26,8 @@ public class DatabaseAttemptService implements AttemptService {
     private final Connection conn;
 
     public DatabaseAttemptService() {
-        this.conn = DatabaseManager.connectWithDatabase();
+        // Get singleton database connection for data persistence
+        this.conn = DatabaseManager.getConnection();
         if (conn == null) {
             throw new RuntimeException("Failed to connect to database");
         }
@@ -63,9 +64,12 @@ public class DatabaseAttemptService implements AttemptService {
     public List<QuizAttempt> getAttemptsByStudent(int studentId) {
         List<QuizAttempt> attempts = new ArrayList<>();
         String sql = "SELECT quiz_id, student_id, attempt, score FROM scores WHERE student_id=" + studentId;
+        Statement stmt = null;
+        ResultSet rs = null;
 
-        try (Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery(sql)) {
+        try {
+            stmt = conn.createStatement();
+            rs = stmt.executeQuery(sql);
 
             while (rs.next()) {
                 int quizId = rs.getInt("quiz_id");
@@ -78,6 +82,13 @@ public class DatabaseAttemptService implements AttemptService {
             }
         } catch (SQLException e) {
             System.err.println("Error getting attempts by student: " + e.getMessage());
+        } finally {
+            try {
+                if (rs != null) rs.close();
+                if (stmt != null) stmt.close();
+            } catch (SQLException e) {
+                System.err.println("Error closing resources: " + e.getMessage());
+            }
         }
 
         return attempts;
@@ -87,9 +98,12 @@ public class DatabaseAttemptService implements AttemptService {
     public List<QuizAttempt> getAttemptsByQuiz(int quizId) {
         List<QuizAttempt> attempts = new ArrayList<>();
         String sql = "SELECT quiz_id, student_id, attempt, score FROM scores WHERE quiz_id=" + quizId;
+        Statement stmt = null;
+        ResultSet rs = null;
 
-        try (Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery(sql)) {
+        try {
+            stmt = conn.createStatement();
+            rs = stmt.executeQuery(sql);
 
             while (rs.next()) {
                 int studentId = rs.getInt("student_id");
@@ -102,6 +116,13 @@ public class DatabaseAttemptService implements AttemptService {
             }
         } catch (SQLException e) {
             System.err.println("Error getting attempts by quiz: " + e.getMessage());
+        } finally {
+            try {
+                if (rs != null) rs.close();
+                if (stmt != null) stmt.close();
+            } catch (SQLException e) {
+                System.err.println("Error closing resources: " + e.getMessage());
+            }
         }
 
         return attempts;
@@ -119,9 +140,12 @@ public class DatabaseAttemptService implements AttemptService {
         List<QuizAttempt> attempts = new ArrayList<>();
         String sql = "SELECT quiz_id, student_id, attempt, score FROM scores " +
                      "WHERE student_id=" + studentId + " AND quiz_id=" + quizId;
+        Statement stmt = null;
+        ResultSet rs = null;
 
-        try (Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery(sql)) {
+        try {
+            stmt = conn.createStatement();
+            rs = stmt.executeQuery(sql);
 
             while (rs.next()) {
                 int attemptNum = rs.getInt("attempt");
@@ -133,6 +157,13 @@ public class DatabaseAttemptService implements AttemptService {
             }
         } catch (SQLException e) {
             System.err.println("Error getting student attempts for quiz: " + e.getMessage());
+        } finally {
+            try {
+                if (rs != null) rs.close();
+                if (stmt != null) stmt.close();
+            } catch (SQLException e) {
+                System.err.println("Error closing resources: " + e.getMessage());
+            }
         }
 
         return attempts;
@@ -141,15 +172,25 @@ public class DatabaseAttemptService implements AttemptService {
     @Override
     public boolean hasStudentAttemptedQuiz(int studentId, int quizId) {
         String sql = "SELECT COUNT(*) as count FROM scores WHERE student_id=" + studentId + " AND quiz_id=" + quizId;
+        Statement stmt = null;
+        ResultSet rs = null;
 
-        try (Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery(sql)) {
+        try {
+            stmt = conn.createStatement();
+            rs = stmt.executeQuery(sql);
 
             if (rs.next()) {
                 return rs.getInt("count") > 0;
             }
         } catch (SQLException e) {
             System.err.println("Error checking if student attempted quiz: " + e.getMessage());
+        } finally {
+            try {
+                if (rs != null) rs.close();
+                if (stmt != null) stmt.close();
+            } catch (SQLException e) {
+                System.err.println("Error closing resources: " + e.getMessage());
+            }
         }
 
         return false;
@@ -158,15 +199,25 @@ public class DatabaseAttemptService implements AttemptService {
     @Override
     public int getTotalAttemptCount() {
         String sql = "SELECT COUNT(*) as count FROM scores";
+        Statement stmt = null;
+        ResultSet rs = null;
 
-        try (Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery(sql)) {
+        try {
+            stmt = conn.createStatement();
+            rs = stmt.executeQuery(sql);
 
             if (rs.next()) {
                 return rs.getInt("count");
             }
         } catch (SQLException e) {
             System.err.println("Error getting total attempt count: " + e.getMessage());
+        } finally {
+            try {
+                if (rs != null) rs.close();
+                if (stmt != null) stmt.close();
+            } catch (SQLException e) {
+                System.err.println("Error closing resources: " + e.getMessage());
+            }
         }
 
         return 0;
@@ -176,15 +227,25 @@ public class DatabaseAttemptService implements AttemptService {
     public int getAttemptsToday() {
         String today = LocalDate.now().toString();
         String sql = "SELECT COUNT(*) as count FROM mcqStudentAnswer WHERE date='" + today + "'";
+        Statement stmt = null;
+        ResultSet rs = null;
 
-        try (Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery(sql)) {
+        try {
+            stmt = conn.createStatement();
+            rs = stmt.executeQuery(sql);
 
             if (rs.next()) {
                 return rs.getInt("count");
             }
         } catch (SQLException e) {
             System.err.println("Error getting attempts today: " + e.getMessage());
+        } finally {
+            try {
+                if (rs != null) rs.close();
+                if (stmt != null) stmt.close();
+            } catch (SQLException e) {
+                System.err.println("Error closing resources: " + e.getMessage());
+            }
         }
 
         return 0;
@@ -202,9 +263,12 @@ public class DatabaseAttemptService implements AttemptService {
                      "LEFT JOIN mcqStudentAnswer sa ON qq.question_id = sa.question_id " +
                      "WHERE qq.quiz_id=" + quizId + " " +
                      "GROUP BY qq.question_id";
+        Statement stmt = null;
+        ResultSet rs = null;
 
-        try (Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery(sql)) {
+        try {
+            stmt = conn.createStatement();
+            rs = stmt.executeQuery(sql);
 
             while (rs.next()) {
                 int questionId = rs.getInt("question_id");
@@ -216,6 +280,13 @@ public class DatabaseAttemptService implements AttemptService {
             }
         } catch (SQLException e) {
             System.err.println("Error getting question accuracy: " + e.getMessage());
+        } finally {
+            try {
+                if (rs != null) rs.close();
+                if (stmt != null) stmt.close();
+            } catch (SQLException e) {
+                System.err.println("Error closing resources: " + e.getMessage());
+            }
         }
 
         return accuracyMap;
@@ -231,9 +302,12 @@ public class DatabaseAttemptService implements AttemptService {
         distribution.put("81-100", 0);
 
         String sql = "SELECT score FROM scores WHERE quiz_id=" + quizId;
+        Statement stmt = null;
+        ResultSet rs = null;
 
-        try (Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery(sql)) {
+        try {
+            stmt = conn.createStatement();
+            rs = stmt.executeQuery(sql);
 
             while (rs.next()) {
                 int score = rs.getInt("score");
@@ -250,6 +324,13 @@ public class DatabaseAttemptService implements AttemptService {
             }
         } catch (SQLException e) {
             System.err.println("Error getting score distribution: " + e.getMessage());
+        } finally {
+            try {
+                if (rs != null) rs.close();
+                if (stmt != null) stmt.close();
+            } catch (SQLException e) {
+                System.err.println("Error closing resources: " + e.getMessage());
+            }
         }
 
         return distribution;
@@ -264,9 +345,12 @@ public class DatabaseAttemptService implements AttemptService {
                      "INNER JOIN mcq m ON sa.question_id = m.id " +
                      "WHERE qq.quiz_id=" + quizId + " AND sa.student_id=" + studentId +
                      " AND sa.attempt=" + attemptNum;
+        Statement stmt = null;
+        ResultSet rs = null;
 
-        try (Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery(sql)) {
+        try {
+            stmt = conn.createStatement();
+            rs = stmt.executeQuery(sql);
 
             while (rs.next()) {
                 int questionId = rs.getInt("question_id");
@@ -281,6 +365,13 @@ public class DatabaseAttemptService implements AttemptService {
             }
         } catch (SQLException e) {
             System.err.println("Error getting answers for attempt: " + e.getMessage());
+        } finally {
+            try {
+                if (rs != null) rs.close();
+                if (stmt != null) stmt.close();
+            } catch (SQLException e) {
+                System.err.println("Error closing resources: " + e.getMessage());
+            }
         }
 
         return answers;

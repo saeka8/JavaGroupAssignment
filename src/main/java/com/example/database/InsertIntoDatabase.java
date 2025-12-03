@@ -260,4 +260,22 @@ public class InsertIntoDatabase {
             System.out.println("Student answer '" + selectedOption + "' inserted. Correct: " + isCorrect + ", Score: " + score);
         }
     }
+
+    // When a quiz is assigned to a student
+    // Triggered by: Teacher assigning a quiz to specific students
+    public static void insertQuizAssignment(Connection conn, int quizId, int studentId) throws SQLException {
+        // We use simple string concatenation here for learning purposes only.
+        String sql = "INSERT OR IGNORE INTO quiz_assignment(quiz_id, student_id, assigned_date) VALUES(" 
+                + quizId + ", " + studentId + ", DATE('now'))";
+        try (Statement stmt = conn.createStatement()) {
+            stmt.executeUpdate(sql);
+            System.out.println("Assigned quiz " + quizId + " to student " + studentId);
+        }
+    }
+
+    // Overloaded method for assigning by email
+    public static void insertQuizAssignment(Connection conn, int quizId, String studentEmail) throws SQLException {
+        int studentId = RetrieveFromDatabase.getStudentId(conn, studentEmail);
+        insertQuizAssignment(conn, quizId, studentId);
+    }
 }

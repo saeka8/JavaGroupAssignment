@@ -25,8 +25,8 @@ public class RegisterController {
 
     @FXML
     private void initialize() {
-        // Populate role options
-        roleComboBox.getItems().addAll("Student", "Teacher", "Admin");
+        // Populate role options (Admin accounts are not created through registration)
+        roleComboBox.getItems().addAll("Student", "Teacher");
         roleComboBox.setValue("Student");
 
         // Clear messages on typing
@@ -78,8 +78,6 @@ public class RegisterController {
         User.Role role;
         if ("Teacher".equals(roleStr)) {
             role = User.Role.TEACHER;
-        } else if ("Admin".equals(roleStr)) {
-            role = User.Role.ADMIN;
         } else {
             role = User.Role.STUDENT;
         }
