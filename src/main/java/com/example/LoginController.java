@@ -65,10 +65,6 @@ public class LoginController {
     }
 
     @FXML
-    private void handleRegister() {
-        SceneManager.getInstance().switchScene(SceneManager.REGISTER, 400, 600);
-    }
-
     private void showError(String message) {
         errorLabel.setText(message);
         errorLabel.setVisible(true);
