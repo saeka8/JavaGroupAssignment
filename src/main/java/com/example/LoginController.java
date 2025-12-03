@@ -3,8 +3,8 @@ package com.example;
 import com.example.model.User;
 import com.example.service.AuthService;
 import com.example.service.ServiceLocator;
-import com.example.ui.dev.SceneManager;
-import com.example.ui.dev.SessionManager;
+import com.example.ui.util.SceneManager;
+import com.example.ui.util.SessionManager;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
@@ -14,13 +14,17 @@ import java.util.Optional;
 
 /**
  * Controller for the Login screen.
- * Handles user authentication and routes to appropriate dashboard based on role.
+ * Handles user authentication and routes to appropriate dashboard based on
+ * role.
  */
 public class LoginController {
 
-    @FXML private TextField emailField;
-    @FXML private PasswordField passwordField;
-    @FXML private Label errorLabel;
+    @FXML
+    private TextField emailField;
+    @FXML
+    private PasswordField passwordField;
+    @FXML
+    private Label errorLabel;
 
     private final AuthService authService = ServiceLocator.getAuthService();
 
@@ -47,10 +51,10 @@ public class LoginController {
 
         if (userOpt.isPresent()) {
             User user = userOpt.get();
-            
+
             // Set the current session
             SessionManager.getInstance().setCurrentUser(user);
-            
+
             // Route to appropriate dashboard based on role
             SceneManager sceneManager = SceneManager.getInstance();
             switch (user.getRole()) {

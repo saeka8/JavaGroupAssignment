@@ -9,8 +9,8 @@ import com.example.quizlogic.QuizTakingSession;
 import com.example.service.AttemptService;
 import com.example.service.QuizService;
 import com.example.service.ServiceLocator;
-import com.example.ui.dev.SceneManager;
-import com.example.ui.dev.SessionManager;
+import com.example.ui.util.SceneManager;
+import com.example.ui.util.SessionManager;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -26,22 +26,32 @@ import java.util.Optional;
 public class QuizTakeController {
 
     // Header
-    @FXML private Label quizTitleLabel;
-    @FXML private Label progressLabel;
-    @FXML private ProgressBar progressBar;
+    @FXML
+    private Label quizTitleLabel;
+    @FXML
+    private Label progressLabel;
+    @FXML
+    private ProgressBar progressBar;
 
     // Question display
-    @FXML private Label questionNumberLabel;
-    @FXML private Label questionTextLabel;
+    @FXML
+    private Label questionNumberLabel;
+    @FXML
+    private Label questionTextLabel;
 
     // Answer options
-    @FXML private VBox optionsContainer;
-    @FXML private ToggleGroup optionsGroup;
+    @FXML
+    private VBox optionsContainer;
+    @FXML
+    private ToggleGroup optionsGroup;
 
     // Navigation
-    @FXML private Button prevButton;
-    @FXML private Button nextButton;
-    @FXML private Button submitButton;
+    @FXML
+    private Button prevButton;
+    @FXML
+    private Button nextButton;
+    @FXML
+    private Button submitButton;
 
     // Services
     private final QuizService quizService = ServiceLocator.getQuizService();
@@ -67,7 +77,7 @@ public class QuizTakeController {
      */
     public void setQuiz(Quiz quiz) {
         this.quiz = quiz;
-        
+
         // Load questions if not already loaded
         if (quiz.getQuestions().isEmpty()) {
             quiz.setQuestions(quizService.getQuestionsByQuiz(quiz.getId()));
@@ -123,25 +133,26 @@ public class QuizTakeController {
 
     private String getDefaultOptionStyle() {
         return "-fx-background-color: white; " +
-               "-fx-border-color: #dee2e6; " +
-               "-fx-border-radius: 8; " +
-               "-fx-background-radius: 8; " +
-               "-fx-font-size: 14px; " +
-               "-fx-cursor: hand;";
+                "-fx-border-color: #dee2e6; " +
+                "-fx-border-radius: 8; " +
+                "-fx-background-radius: 8; " +
+                "-fx-font-size: 14px; " +
+                "-fx-cursor: hand;";
     }
 
     private String getSelectedOptionStyle() {
         return "-fx-background-color: #e8f0fe; " +
-               "-fx-border-color: #2B3A67; " +
-               "-fx-border-width: 2; " +
-               "-fx-border-radius: 8; " +
-               "-fx-background-radius: 8; " +
-               "-fx-font-size: 14px; " +
-               "-fx-font-weight: bold;";
+                "-fx-border-color: #2B3A67; " +
+                "-fx-border-width: 2; " +
+                "-fx-border-radius: 8; " +
+                "-fx-background-radius: 8; " +
+                "-fx-font-size: 14px; " +
+                "-fx-font-weight: bold;";
     }
 
     private void updateQuestion() {
-        if (session == null || quiz == null) return;
+        if (session == null || quiz == null)
+            return;
 
         Question current = session.getCurrentQuestion();
         int currentIdx = session.getCurrentIndex();
@@ -164,7 +175,7 @@ public class QuizTakeController {
         // Restore previous answer if any
         Character previousAnswer = session.getAnswerForCurrentQuestion();
         optionsGroup.selectToggle(null); // Clear selection first
-        
+
         if (previousAnswer != null) {
             switch (previousAnswer) {
                 case 'A' -> optionsGroup.selectToggle(optionA);
@@ -176,7 +187,7 @@ public class QuizTakeController {
 
         // Update navigation buttons
         prevButton.setDisable(!session.hasPrevious());
-        
+
         // Show submit on last question, otherwise show next
         boolean isLast = !session.hasNext();
         nextButton.setVisible(!isLast);
@@ -199,13 +210,13 @@ public class QuizTakeController {
             alert.setTitle("Unanswered Question");
             alert.setHeaderText("You haven't answered this question.");
             alert.setContentText("Do you want to skip it and move to the next question?");
-            
+
             Optional<ButtonType> result = alert.showAndWait();
             if (result.isEmpty() || result.get() != ButtonType.OK) {
                 return;
             }
         }
-        
+
         session.next();
         updateQuestion();
     }
@@ -236,8 +247,7 @@ public class QuizTakeController {
                 quiz.getId(),
                 attemptNumber,
                 quiz.getQuestions(),
-                session.getAllAnswers()
-        );
+                session.getAllAnswers());
 
         // Save attempt
         attemptService.saveAttempt(attempt);
@@ -255,7 +265,7 @@ public class QuizTakeController {
         content.setPadding(new Insets(30));
         content.setStyle("-fx-background-color: white;");
 
-        int totalScore = attempt.getTotalScore();   
+        int totalScore = attempt.getTotalScore();
 
         Label emojiLabel = new Label(totalScore >= 80 ? "🎉" : totalScore >= 60 ? "👍" : "📚");
         emojiLabel.setStyle("-fx-font-size: 48px;");
@@ -274,19 +284,20 @@ public class QuizTakeController {
         dialog.getDialogPane().setContent(content);
         dialog.getDialogPane().getButtonTypes().add(ButtonType.OK);
 
-        dialog.setOnHidden(e ->
-                SceneManager.getInstance().switchScene(SceneManager.STUDENT_DASHBOARD)
-        );
+        dialog.setOnHidden(e -> SceneManager.getInstance().switchScene(SceneManager.STUDENT_DASHBOARD));
 
         dialog.showAndWait();
     }
 
-
     private String getScoreMessage(int score) {
-        if (score >= 90) return "Excellent work! You've mastered this material!";
-        if (score >= 80) return "Great job! You're doing really well!";
-        if (score >= 70) return "Good effort! Keep practicing!";
-        if (score >= 60) return "Not bad! Review the material and try again.";
+        if (score >= 90)
+            return "Excellent work! You've mastered this material!";
+        if (score >= 80)
+            return "Great job! You're doing really well!";
+        if (score >= 70)
+            return "Good effort! Keep practicing!";
+        if (score >= 60)
+            return "Not bad! Review the material and try again.";
         return "Keep studying! You'll get better with practice.";
     }
 

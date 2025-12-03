@@ -1,4 +1,4 @@
-package com.example.ui.dev;
+package com.example.ui.util;
 
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -14,12 +14,12 @@ import java.util.Map;
  * Handles loading FXML files and switching scenes.
  */
 public class SceneManager {
-    
+
     private static SceneManager instance;
     private Stage primaryStage;
     private final Map<String, String> viewPaths;
     private Object currentController;
-    
+
     // View constants
     public static final String LOGIN = "login";
     public static final String ADMIN_DASHBOARD = "admin_dashboard";
@@ -29,12 +29,12 @@ public class SceneManager {
     public static final String QUIZ_CREATE = "quiz_create";
     public static final String QUIZ_RESULTS = "quiz_results";
     public static final String USER_MANAGEMENT = "user_management";
-    
+
     private SceneManager() {
         viewPaths = new HashMap<>();
         initializeViewPaths();
     }
-    
+
     /**
      * Get the singleton instance.
      */
@@ -44,14 +44,14 @@ public class SceneManager {
         }
         return instance;
     }
-    
+
     /**
      * Initialize the stage reference. Call this from Main.java
      */
     public void initialize(Stage stage) {
         this.primaryStage = stage;
     }
-    
+
     /**
      * Map view names to their FXML file paths.
      */
@@ -65,15 +65,16 @@ public class SceneManager {
         viewPaths.put(QUIZ_RESULTS, "/views/quiz_results.fxml");
         viewPaths.put(USER_MANAGEMENT, "/views/user_management.fxml");
     }
-    
+
     /**
      * Switch to a different scene by view name.
+     * 
      * @param viewName one of the view constants
      */
     public void switchScene(String viewName) {
         switchScene(viewName, 900, 600);
     }
-    
+
     /**
      * Switch to a different scene with custom dimensions.
      */
@@ -83,28 +84,28 @@ public class SceneManager {
             System.err.println("Unknown view: " + viewName);
             return;
         }
-        
+
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource(path));
             Parent root = loader.load();
             currentController = loader.getController();
-            
+
             Scene scene = new Scene(root, width, height);
-            
+
             // Apply the global stylesheet
             String css = getClass().getResource("/styles/main.css").toExternalForm();
             scene.getStylesheets().add(css);
-            
+
             primaryStage.setScene(scene);
             primaryStage.setTitle(getTitleForView(viewName));
             primaryStage.show();
-            
+
         } catch (IOException e) {
             System.err.println("Failed to load view: " + viewName);
             e.printStackTrace();
         }
     }
-    
+
     /**
      * Load a view and return its controller (useful for passing data).
      */
@@ -114,44 +115,44 @@ public class SceneManager {
             System.err.println("Unknown view: " + viewName);
             return null;
         }
-        
+
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource(path));
             Parent root = loader.load();
             T controller = loader.getController();
             currentController = controller;
-            
+
             Scene scene = new Scene(root, 900, 600);
             String css = getClass().getResource("/styles/main.css").toExternalForm();
             scene.getStylesheets().add(css);
-            
+
             primaryStage.setScene(scene);
             primaryStage.setTitle(getTitleForView(viewName));
             primaryStage.show();
-            
+
             return controller;
-            
+
         } catch (IOException e) {
             System.err.println("Failed to load view: " + viewName);
             e.printStackTrace();
             return null;
         }
     }
-    
+
     /**
      * Get the current controller.
      */
     public Object getCurrentController() {
         return currentController;
     }
-    
+
     /**
      * Get the primary stage.
      */
     public Stage getPrimaryStage() {
         return primaryStage;
     }
-    
+
     /**
      * Get window title for each view.
      */

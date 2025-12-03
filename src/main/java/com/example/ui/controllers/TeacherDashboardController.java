@@ -16,8 +16,8 @@ import com.example.service.GroupService;
 import com.example.service.QuizService;
 import com.example.service.ServiceLocator;
 import com.example.service.UserService;
-import com.example.ui.dev.SceneManager;
-import com.example.ui.dev.SessionManager;
+import com.example.ui.util.SceneManager;
+import com.example.ui.util.SessionManager;
 
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleStringProperty;
@@ -272,8 +272,7 @@ public class TeacherDashboardController {
     }
 
     private void setupStudentsTable() {
-        studentNameColumn.setCellValueFactory(cellData ->
-                new SimpleStringProperty(cellData.getValue().getFullName()));
+        studentNameColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getFullName()));
         studentEmailColumn.setCellValueFactory(new PropertyValueFactory<>("email"));
 
         studentGroupAvgColumn.setCellValueFactory(cellData -> {
@@ -288,7 +287,8 @@ public class TeacherDashboardController {
                 return new SimpleStringProperty("N/A");
             }
 
-            // Calculate average percentage across all quizzes in the group (best attempts only)
+            // Calculate average percentage across all quizzes in the group (best attempts
+            // only)
             List<Double> percentages = new ArrayList<>();
 
             for (Quiz quiz : groupQuizzes) {
@@ -489,7 +489,8 @@ public class TeacherDashboardController {
         myQuizzesCount.setText(String.valueOf(quizzes.size()));
         totalAttemptsCount.setText(String.valueOf(attempts.size()));
 
-        // Calculate average of student averages (matching "Average" column in students table)
+        // Calculate average of student averages (matching "Average" column in students
+        // table)
         if (selectedGroup == null || quizzes.isEmpty()) {
             averageScoreLabel.setText("N/A");
         } else {
@@ -546,7 +547,8 @@ public class TeacherDashboardController {
         }
 
         // Load attempts for the specific student and quiz
-        List<QuizAttempt> attempts = attemptService.getStudentAttemptsForQuiz(selectedStudent.getId(), selectedQuiz.getId());
+        List<QuizAttempt> attempts = attemptService.getStudentAttemptsForQuiz(selectedStudent.getId(),
+                selectedQuiz.getId());
 
         // Sort by attempt number (most recent first)
         attempts.sort((a, b) -> Integer.compare(b.getAttemptNumber(), a.getAttemptNumber()));
@@ -559,7 +561,8 @@ public class TeacherDashboardController {
 
     private void clearResultsFilter() {
         resultsTable.setItems(FXCollections.observableArrayList());
-        resultsFilterLabel.setText("💡 Select a quiz from 'My Quizzes' tab and a student from 'Student List' tab to view their attempts");
+        resultsFilterLabel.setText(
+                "💡 Select a quiz from 'My Quizzes' tab and a student from 'Student List' tab to view their attempts");
     }
 
     @FXML

@@ -20,8 +20,8 @@ import com.example.quizlogic.Question;
 import com.example.service.AttemptService;
 import com.example.service.QuizService;
 import com.example.service.ServiceLocator;
-import com.example.ui.dev.SceneManager;
-import com.example.ui.dev.SessionManager;
+import com.example.ui.util.SceneManager;
+import com.example.ui.util.SessionManager;
 
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
@@ -50,39 +50,64 @@ import javafx.scene.layout.VBox;
 public class StudentDashboardController {
 
     // Header
-    @FXML private Label welcomeLabel;
-    @FXML private Label userEmailLabel;
-    @FXML private Label groupsLabel;
+    @FXML
+    private Label welcomeLabel;
+    @FXML
+    private Label userEmailLabel;
+    @FXML
+    private Label groupsLabel;
 
     // Stats
-    @FXML private Label assignedQuizzesCount;
-    @FXML private Label completedQuizzesCount;
-    @FXML private Label averageScoreLabel;
+    @FXML
+    private Label assignedQuizzesCount;
+    @FXML
+    private Label completedQuizzesCount;
+    @FXML
+    private Label averageScoreLabel;
 
     // Assigned Quizzes Table
-    @FXML private TableView<Quiz> quizzesTable;
-    @FXML private TableColumn<Quiz, String> quizTitleColumn;
-    @FXML private TableColumn<Quiz, String> quizDescriptionColumn;
-    @FXML private TableColumn<Quiz, String> quizQuestionsColumn;
-    @FXML private TableColumn<Quiz, String> quizAttemptsColumn;
-    @FXML private TableColumn<Quiz, String> quizStatusColumn;
-    @FXML private TableColumn<Quiz, String> quizGradeColumn;
-    @FXML private TextField quizSearchField;
+    @FXML
+    private TableView<Quiz> quizzesTable;
+    @FXML
+    private TableColumn<Quiz, String> quizTitleColumn;
+    @FXML
+    private TableColumn<Quiz, String> quizDescriptionColumn;
+    @FXML
+    private TableColumn<Quiz, String> quizQuestionsColumn;
+    @FXML
+    private TableColumn<Quiz, String> quizAttemptsColumn;
+    @FXML
+    private TableColumn<Quiz, String> quizStatusColumn;
+    @FXML
+    private TableColumn<Quiz, String> quizGradeColumn;
+    @FXML
+    private TextField quizSearchField;
 
     // History Table
-    @FXML private TableView<QuizAttempt> historyTable;
-    @FXML private TableColumn<QuizAttempt, String> historyQuizColumn;
-    @FXML private TableColumn<QuizAttempt, String> historyScoreColumn;
-    @FXML private TableColumn<QuizAttempt, String> historyDateColumn;
+    @FXML
+    private TableView<QuizAttempt> historyTable;
+    @FXML
+    private TableColumn<QuizAttempt, String> historyQuizColumn;
+    @FXML
+    private TableColumn<QuizAttempt, String> historyScoreColumn;
+    @FXML
+    private TableColumn<QuizAttempt, String> historyDateColumn;
 
     // Quiz-specific analytics section
-    @FXML private VBox quizAnalyticsSection;
-    @FXML private Label selectedQuizLabel;
-    @FXML private Label quizStatsLabel;
-    @FXML private Label quizChartMessageLabel;
-    @FXML private LineChart<String, Number> quizSpecificChart;
-    @FXML private NumberAxis quizYAxis;
-    @FXML private CategoryAxis quizXAxis;
+    @FXML
+    private VBox quizAnalyticsSection;
+    @FXML
+    private Label selectedQuizLabel;
+    @FXML
+    private Label quizStatsLabel;
+    @FXML
+    private Label quizChartMessageLabel;
+    @FXML
+    private LineChart<String, Number> quizSpecificChart;
+    @FXML
+    private NumberAxis quizYAxis;
+    @FXML
+    private CategoryAxis quizXAxis;
 
     // Services
     private final QuizService quizService = ServiceLocator.getQuizService();
@@ -93,7 +118,8 @@ public class StudentDashboardController {
     private ObservableList<Quiz> assignedQuizzes;
     private FilteredList<Quiz> filteredQuizzes;
     private User currentUser;
-    @FXML private ComboBox<Group> studentGroupCombo;
+    @FXML
+    private ComboBox<Group> studentGroupCombo;
 
     @FXML
     private void initialize() {
@@ -131,7 +157,8 @@ public class StudentDashboardController {
             return new SimpleStringProperty(String.valueOf(attemptCount));
         });
 
-        // UPDATED: Status column now shows score as fraction (e.g., "Completed (3/3pts)")
+        // UPDATED: Status column now shows score as fraction (e.g., "Completed
+        // (3/3pts)")
         quizStatusColumn.setCellValueFactory(cellData -> {
             Quiz quiz = cellData.getValue();
             boolean attempted = attemptService.hasStudentAttemptedQuiz(currentUser.getId(), quiz.getId());
@@ -263,7 +290,7 @@ public class StudentDashboardController {
                 }
                 String lowerFilter = newVal.toLowerCase();
                 return quiz.getTitle().toLowerCase().contains(lowerFilter) ||
-                       quiz.getDescription().toLowerCase().contains(lowerFilter);
+                        quiz.getDescription().toLowerCase().contains(lowerFilter);
             });
             // Update assigned count after filtering
             updateAssignedQuizzesCount();
@@ -324,22 +351,24 @@ public class StudentDashboardController {
 
         // Listen to quizzes table selection only
         quizzesTable.getSelectionModel().selectedItemProperty().addListener(
-            (observable, oldValue, newValue) -> {
-                if (newValue != null) {
-                    showQuizAnalytics(newValue.getId());
-                }
-            }
-        );
+                (observable, oldValue, newValue) -> {
+                    if (newValue != null) {
+                        showQuizAnalytics(newValue.getId());
+                    }
+                });
     }
 
-    // FIXED: Show analytics for a specific quiz with correct x-axis alignment and improvement calculation
+    // FIXED: Show analytics for a specific quiz with correct x-axis alignment and
+    // improvement calculation
     private void showQuizAnalytics(int quizId) {
         try (Connection conn = DatabaseManager.connectWithDatabase()) {
-            if (conn == null) return;
+            if (conn == null)
+                return;
 
             // Get quiz details
             Optional<Quiz> quizOpt = quizService.getQuizById(quizId);
-            if (!quizOpt.isPresent()) return;
+            if (!quizOpt.isPresent())
+                return;
 
             Quiz quiz = quizOpt.get();
 
@@ -388,9 +417,8 @@ public class StudentDashboardController {
             int totalAttempts = quizAttempts.size();
 
             quizStatsLabel.setText(String.format(
-                "Best Score: %.1f%% | Total Attempts: %d | Questions: %d",
-                bestScore, totalAttempts, quiz.getQuestions().size()
-            ));
+                    "Best Score: %.1f%% | Total Attempts: %d | Questions: %d",
+                    bestScore, totalAttempts, quiz.getQuestions().size()));
 
             // Build the chart with FIXED x-axis alignment
             quizSpecificChart.getData().clear();
@@ -408,17 +436,15 @@ public class StudentDashboardController {
             if (percentages.size() >= 2) {
                 double firstScore = percentages.get(0);
                 double lastScore = percentages.get(percentages.size() - 1);
-                double improvement = lastScore - firstScore;  // Fixed: was multiplied by 100 incorrectly
+                double improvement = lastScore - firstScore; // Fixed: was multiplied by 100 incorrectly
 
-                String trend = improvement > 0 ? "📈 Improving" :
-                              improvement < 0 ? "📉 Declining" : "➡️ Stable";
+                String trend = improvement > 0 ? "📈 Improving" : improvement < 0 ? "📉 Declining" : "➡️ Stable";
 
                 quizChartMessageLabel.setText(String.format(
-                    "%s | Improvement: %+.1f%% from first attempt",
-                    trend, improvement
-                ));
-                quizChartMessageLabel.setStyle(improvement >= 0 ?
-                    "-fx-text-fill: #28a745;" : "-fx-text-fill: #dc3545;");
+                        "%s | Improvement: %+.1f%% from first attempt",
+                        trend, improvement));
+                quizChartMessageLabel
+                        .setStyle(improvement >= 0 ? "-fx-text-fill: #28a745;" : "-fx-text-fill: #dc3545;");
             } else {
                 quizChartMessageLabel.setText("📊 Complete more attempts to track improvement");
                 quizChartMessageLabel.setStyle("-fx-text-fill: #6c757d;");
@@ -442,7 +468,8 @@ public class StudentDashboardController {
     }
 
     private void loadData() {
-        if (currentUser == null) return;
+        if (currentUser == null)
+            return;
 
         // Load assigned quizzes
         List<Quiz> quizzes = quizService.getAssignedQuizzes(currentUser.getId());
@@ -461,7 +488,8 @@ public class StudentDashboardController {
                 groupsLabel.setText("Groups: None");
                 studentGroupCombo.setItems(FXCollections.observableArrayList());
             } else {
-                String names = String.join(", ", groups.stream().map(com.example.model.Group::getName).toArray(String[]::new));
+                String names = String.join(", ",
+                        groups.stream().map(com.example.model.Group::getName).toArray(String[]::new));
                 groupsLabel.setText("Groups: " + names);
                 studentGroupCombo.setItems(FXCollections.observableArrayList(groups));
                 studentGroupCombo.getItems().add(0, null); // option to show all

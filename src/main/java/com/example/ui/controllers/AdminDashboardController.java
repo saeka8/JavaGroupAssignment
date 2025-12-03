@@ -13,8 +13,8 @@ import com.example.service.GroupService;
 import com.example.service.QuizService;
 import com.example.service.ServiceLocator;
 import com.example.service.UserService;
-import com.example.ui.dev.SceneManager;
-import com.example.ui.dev.SessionManager;
+import com.example.ui.util.SceneManager;
+import com.example.ui.util.SessionManager;
 
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleStringProperty;
@@ -49,45 +49,74 @@ import javafx.scene.layout.VBox;
 public class AdminDashboardController {
 
     // Header
-    @FXML private Label welcomeLabel;
-    @FXML private Label userEmailLabel;
+    @FXML
+    private Label welcomeLabel;
+    @FXML
+    private Label userEmailLabel;
 
     // Stats
-    @FXML private Label totalUsersCount;
-    @FXML private Label totalQuizzesCount;
-    @FXML private Label totalAttemptsCount;
-    @FXML private Label teacherCount;
-    @FXML private Label studentCount;
+    @FXML
+    private Label totalUsersCount;
+    @FXML
+    private Label totalQuizzesCount;
+    @FXML
+    private Label totalAttemptsCount;
+    @FXML
+    private Label teacherCount;
+    @FXML
+    private Label studentCount;
 
     // Users Table
-    @FXML private TableView<User> usersTable;
-    @FXML private TableColumn<User, Integer> userIdColumn;
-    @FXML private TableColumn<User, String> userNameColumn;
-    @FXML private TableColumn<User, String> userEmailColumn;
-    @FXML private TableColumn<User, String> userRoleColumn;
-    @FXML private TextField userSearchField;
-    @FXML private ComboBox<String> roleFilterCombo;
+    @FXML
+    private TableView<User> usersTable;
+    @FXML
+    private TableColumn<User, Integer> userIdColumn;
+    @FXML
+    private TableColumn<User, String> userNameColumn;
+    @FXML
+    private TableColumn<User, String> userEmailColumn;
+    @FXML
+    private TableColumn<User, String> userRoleColumn;
+    @FXML
+    private TextField userSearchField;
+    @FXML
+    private ComboBox<String> roleFilterCombo;
 
     // Quizzes Table
-    @FXML private TableView<Quiz> quizzesTable;
-    @FXML private TableColumn<Quiz, Integer> quizIdColumn;
-    @FXML private TableColumn<Quiz, String> quizTitleColumn;
-    @FXML private TableColumn<Quiz, String> quizTeacherColumn;
-    @FXML private TableColumn<Quiz, String> quizQuestionsColumn;
+    @FXML
+    private TableView<Quiz> quizzesTable;
+    @FXML
+    private TableColumn<Quiz, Integer> quizIdColumn;
+    @FXML
+    private TableColumn<Quiz, String> quizTitleColumn;
+    @FXML
+    private TableColumn<Quiz, String> quizTeacherColumn;
+    @FXML
+    private TableColumn<Quiz, String> quizQuestionsColumn;
 
     // Groups Table
-    @FXML private TableView<Group> groupsTable;
-    @FXML private TableColumn<Group, Integer> groupIdColumn;
-    @FXML private TableColumn<Group, String> groupNameColumn;
-    @FXML private TableColumn<Group, String> groupTeacherColumn;
-    @FXML private TableColumn<Group, Integer> groupStudentCountColumn;
+    @FXML
+    private TableView<Group> groupsTable;
+    @FXML
+    private TableColumn<Group, Integer> groupIdColumn;
+    @FXML
+    private TableColumn<Group, String> groupNameColumn;
+    @FXML
+    private TableColumn<Group, String> groupTeacherColumn;
+    @FXML
+    private TableColumn<Group, Integer> groupStudentCountColumn;
 
     // Enrollment UI
-    @FXML private TableView<User> enrolledStudentsTable;
-    @FXML private TableColumn<User, Integer> enrolledStudentIdColumn;
-    @FXML private TableColumn<User, String> enrolledStudentNameColumn;
-    @FXML private TableColumn<User, String> enrolledStudentEmailColumn;
-    @FXML private TableColumn<User, String> enrolledStudentAvgColumn;
+    @FXML
+    private TableView<User> enrolledStudentsTable;
+    @FXML
+    private TableColumn<User, Integer> enrolledStudentIdColumn;
+    @FXML
+    private TableColumn<User, String> enrolledStudentNameColumn;
+    @FXML
+    private TableColumn<User, String> enrolledStudentEmailColumn;
+    @FXML
+    private TableColumn<User, String> enrolledStudentAvgColumn;
 
     // Services
     private final UserService userService = ServiceLocator.getUserService();
@@ -131,11 +160,10 @@ public class AdminDashboardController {
 
     private void setupUsersTable() {
         userIdColumn.setCellValueFactory(new PropertyValueFactory<>("id"));
-        userNameColumn.setCellValueFactory(cellData -> 
-                new SimpleStringProperty(cellData.getValue().getFullName()));
+        userNameColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getFullName()));
         userEmailColumn.setCellValueFactory(new PropertyValueFactory<>("email"));
-        userRoleColumn.setCellValueFactory(cellData -> 
-                new SimpleStringProperty(cellData.getValue().getRole().toString()));
+        userRoleColumn
+                .setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getRole().toString()));
 
         // Style role column with colors
         userRoleColumn.setCellFactory(column -> new TableCell<>() {
@@ -161,7 +189,7 @@ public class AdminDashboardController {
     private void setupQuizzesTable() {
         quizIdColumn.setCellValueFactory(new PropertyValueFactory<>("id"));
         quizTitleColumn.setCellValueFactory(new PropertyValueFactory<>("title"));
-        
+
         quizTeacherColumn.setCellValueFactory(cellData -> {
             int teacherId = cellData.getValue().getTeacherId();
             String name = userService.getUserById(teacherId)
@@ -197,7 +225,7 @@ public class AdminDashboardController {
             }
             String lowerFilter = searchText.toLowerCase();
             return user.getFullName().toLowerCase().contains(lowerFilter) ||
-                   user.getEmail().toLowerCase().contains(lowerFilter);
+                    user.getEmail().toLowerCase().contains(lowerFilter);
         });
     }
 
@@ -427,7 +455,8 @@ public class AdminDashboardController {
                     // Dialog to choose a new teacher per group
                     Dialog<Boolean> mappingDialog = new Dialog<>();
                     mappingDialog.setTitle("Reassign Groups");
-                    mappingDialog.setHeaderText("Select a teacher for each group owned by: " + selectedUser.getFullName());
+                    mappingDialog
+                            .setHeaderText("Select a teacher for each group owned by: " + selectedUser.getFullName());
                     ButtonType confirmBtn = new ButtonType("Reassign & Delete", ButtonBar.ButtonData.OK_DONE);
                     mappingDialog.getDialogPane().getButtonTypes().addAll(confirmBtn, ButtonType.CANCEL);
 
@@ -466,7 +495,8 @@ public class AdminDashboardController {
                     mappingDialog.getDialogPane().setContent(sp);
 
                     mappingDialog.setResultConverter(btn -> {
-                        if (btn == confirmBtn) return Boolean.TRUE;
+                        if (btn == confirmBtn)
+                            return Boolean.TRUE;
                         return null;
                     });
 
@@ -476,7 +506,8 @@ public class AdminDashboardController {
                         for (Group g : teacherGroups) {
                             ComboBox<User> cb = mapping.get(g.getId());
                             if (cb.getValue() == null) {
-                                showAlert(Alert.AlertType.ERROR, "Validation Error", "Please select a teacher for group: " + g.getName());
+                                showAlert(Alert.AlertType.ERROR, "Validation Error",
+                                        "Please select a teacher for group: " + g.getName());
                                 return;
                             }
                         }
@@ -493,14 +524,16 @@ public class AdminDashboardController {
                         }
 
                         if (!allOk) {
-                            showAlert(Alert.AlertType.ERROR, "Reassignment Failed", "One or more groups failed to be reassigned. Aborting deletion.");
+                            showAlert(Alert.AlertType.ERROR, "Reassignment Failed",
+                                    "One or more groups failed to be reassigned. Aborting deletion.");
                             return;
                         }
 
                         // After reassignments, delete the teacher
                         if (userService.deleteUser(selectedUser.getId())) {
                             showAlert(Alert.AlertType.INFORMATION, "User Deleted",
-                                    "User '" + selectedUser.getFullName() + "' has been deleted and their groups reassigned.");
+                                    "User '" + selectedUser.getFullName()
+                                            + "' has been deleted and their groups reassigned.");
                             loadData();
                         }
                         return;
@@ -564,8 +597,8 @@ public class AdminDashboardController {
 
     private void setupEnrollmentUI() {
         enrolledStudentIdColumn.setCellValueFactory(new PropertyValueFactory<>("id"));
-        enrolledStudentNameColumn.setCellValueFactory(cellData ->
-                new SimpleStringProperty(cellData.getValue().getFullName()));
+        enrolledStudentNameColumn
+                .setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getFullName()));
         enrolledStudentEmailColumn.setCellValueFactory(new PropertyValueFactory<>("email"));
 
         // NEW: Setup average grade column
@@ -581,7 +614,8 @@ public class AdminDashboardController {
                 return new SimpleStringProperty("N/A");
             }
 
-            // Calculate average percentage across all quizzes in the group (best attempts only)
+            // Calculate average percentage across all quizzes in the group (best attempts
+            // only)
             List<Double> percentages = new ArrayList<>();
 
             for (Quiz quiz : groupQuizzes) {

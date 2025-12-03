@@ -1,7 +1,7 @@
 package com.example;
 
 import com.example.database.DatabaseManager;
-import com.example.ui.dev.SceneManager;
+import com.example.ui.util.SceneManager;
 import javafx.application.Application;
 import javafx.stage.Stage;
 
@@ -18,7 +18,7 @@ public class Main extends Application {
         // Initialize the SceneManager with the primary stage
         SceneManager sceneManager = SceneManager.getInstance();
         sceneManager.initialize(primaryStage);
-        
+
         // Start with the login screen
         sceneManager.switchScene(SceneManager.LOGIN, 400, 500);
     }

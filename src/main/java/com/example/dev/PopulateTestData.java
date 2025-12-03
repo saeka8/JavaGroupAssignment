@@ -1,4 +1,4 @@
-package com.example.util;
+package com.example.dev;
 
 import com.example.database.DatabaseManager;
 import com.example.database.InsertIntoDatabase;
@@ -10,7 +10,8 @@ import java.sql.SQLException;
  * Utility class to populate the database with the EXACT data structure
  * that exists in the current database, but with corrected 1-point scoring.
  *
- * Run this after deleting group5Quiz.db to recreate the database with correct scores.
+ * Run this after deleting group5Quiz.db to recreate the database with correct
+ * scores.
  */
 public class PopulateTestData {
 
@@ -89,7 +90,8 @@ public class PopulateTestData {
         System.out.println("  ✓ 4 Teachers");
 
         // 6-19. Students
-        InsertIntoDatabase.insertPeople(conn, "Charlie", "Student", "charlie.student@quiz.com", "student123", "student");
+        InsertIntoDatabase.insertPeople(conn, "Charlie", "Student", "charlie.student@quiz.com", "student123",
+                "student");
         InsertIntoDatabase.insertPeople(conn, "Diana", "Student", "diana.student@quiz.com", "student123", "student");
         InsertIntoDatabase.insertPeople(conn, "Eve", "Student", "eve.student@quiz.com", "student123", "student");
         InsertIntoDatabase.insertPeople(conn, "Frank", "Student", "frank.student@quiz.com", "student123", "student");
@@ -164,7 +166,8 @@ public class PopulateTestData {
         InsertIntoDatabase.insertEnrollment(conn, 7, 9);
         System.out.println("  ✓ groupA: 2 students");
 
-        // best group ever (Group 8) - Diana(5), sofia(11), nathan(13), silvia(14), oskar(15), paula(16)
+        // best group ever (Group 8) - Diana(5), sofia(11), nathan(13), silvia(14),
+        // oskar(15), paula(16)
         InsertIntoDatabase.insertEnrollment(conn, 8, 5);
         InsertIntoDatabase.insertEnrollment(conn, 8, 11);
         InsertIntoDatabase.insertEnrollment(conn, 8, 13);
@@ -173,7 +176,8 @@ public class PopulateTestData {
         InsertIntoDatabase.insertEnrollment(conn, 8, 16);
         System.out.println("  ✓ best group ever: 6 students");
 
-        // Intro to programming (Group 9) - sofia(11), silvia(14), Simonida(17), Simonida(19)
+        // Intro to programming (Group 9) - sofia(11), silvia(14), Simonida(17),
+        // Simonida(19)
         InsertIntoDatabase.insertEnrollment(conn, 9, 11);
         InsertIntoDatabase.insertEnrollment(conn, 9, 14);
         InsertIntoDatabase.insertEnrollment(conn, 9, 17);
@@ -220,128 +224,128 @@ public class PopulateTestData {
     private static void addQuestions(Connection conn) throws SQLException {
         // Questions for Java Basics Quiz (Quiz 1) - NOW ALL 1 POINT
         int q1 = InsertIntoDatabase.insertMcq(conn,
-            "What is the correct way to declare a variable in Java?",
-            "int x = 5;", "variable x = 5;", "x = 5;", "declare int x = 5;",
-            'A', 1);
+                "What is the correct way to declare a variable in Java?",
+                "int x = 5;", "variable x = 5;", "x = 5;", "declare int x = 5;",
+                'A', 1);
         InsertIntoDatabase.insertQuizQuestion(conn, 1, q1);
 
         int q2 = InsertIntoDatabase.insertMcq(conn,
-            "Which keyword is used to create a class in Java?",
-            "function", "class", "object", "struct",
-            'B', 1);
+                "Which keyword is used to create a class in Java?",
+                "function", "class", "object", "struct",
+                'B', 1);
         InsertIntoDatabase.insertQuizQuestion(conn, 1, q2);
 
         int q3 = InsertIntoDatabase.insertMcq(conn,
-            "What is the entry point of a Java application?",
-            "start() method", "main() method", "run() method", "execute() method",
-            'B', 1);
+                "What is the entry point of a Java application?",
+                "start() method", "main() method", "run() method", "execute() method",
+                'B', 1);
         InsertIntoDatabase.insertQuizQuestion(conn, 1, q3);
         System.out.println("  ✓ Quiz 1: 3 questions (1 pt each)");
 
         // Questions for OOP Quiz (Quiz 2) - NOW ALL 1 POINT
         int q4 = InsertIntoDatabase.insertMcq(conn,
-            "Which of these is a principle of OOP?",
-            "Compilation", "Encapsulation", "Execution", "Declaration",
-            'B', 1);
+                "Which of these is a principle of OOP?",
+                "Compilation", "Encapsulation", "Execution", "Declaration",
+                'B', 1);
         InsertIntoDatabase.insertQuizQuestion(conn, 2, q4);
 
         int q5 = InsertIntoDatabase.insertMcq(conn,
-            "What is inheritance in OOP?",
-            "Creating multiple objects", "A class acquiring properties from another class",
-            "Hiding implementation details", "Overloading methods",
-            'B', 1);
+                "What is inheritance in OOP?",
+                "Creating multiple objects", "A class acquiring properties from another class",
+                "Hiding implementation details", "Overloading methods",
+                'B', 1);
         InsertIntoDatabase.insertQuizQuestion(conn, 2, q5);
         System.out.println("  ✓ Quiz 2: 2 questions (1 pt each)");
 
         // Questions for Data Structures Quiz (Quiz 3) - NOW ALL 1 POINT
         int q6 = InsertIntoDatabase.insertMcq(conn,
-            "What is the time complexity of accessing an element in an array?",
-            "O(n)", "O(log n)", "O(1)", "O(n^2)",
-            'C', 1);
+                "What is the time complexity of accessing an element in an array?",
+                "O(n)", "O(log n)", "O(1)", "O(n^2)",
+                'C', 1);
         InsertIntoDatabase.insertQuizQuestion(conn, 3, q6);
 
         int q7 = InsertIntoDatabase.insertMcq(conn,
-            "Which data structure uses LIFO principle?",
-            "Queue", "Stack", "Array", "Tree",
-            'B', 1);
+                "Which data structure uses LIFO principle?",
+                "Queue", "Stack", "Array", "Tree",
+                'B', 1);
         InsertIntoDatabase.insertQuizQuestion(conn, 3, q7);
         System.out.println("  ✓ Quiz 3: 2 questions (1 pt each)");
 
         // Questions for Intro to Programming Quiz (Quiz 4) - NOW ALL 1 POINT
         int q8 = InsertIntoDatabase.insertMcq(conn,
-            "What does CPU stand for?",
-            "Central Processing Unit", "Computer Personal Unit",
-            "Central Program Utility", "Computer Processing Unit",
-            'A', 1);
+                "What does CPU stand for?",
+                "Central Processing Unit", "Computer Personal Unit",
+                "Central Program Utility", "Computer Processing Unit",
+                'A', 1);
         InsertIntoDatabase.insertQuizQuestion(conn, 4, q8);
 
         int q9 = InsertIntoDatabase.insertMcq(conn,
-            "What is a variable?",
-            "A fixed value", "A storage location with a name",
-            "A type of loop", "A programming language",
-            'B', 1);
+                "What is a variable?",
+                "A fixed value", "A storage location with a name",
+                "A type of loop", "A programming language",
+                'B', 1);
         InsertIntoDatabase.insertQuizQuestion(conn, 4, q9);
 
         int q10 = InsertIntoDatabase.insertMcq(conn,
-            "Which symbol is used for comments in Java?",
-            "#", "//", "/*", "Both B and C",
-            'D', 1);
+                "Which symbol is used for comments in Java?",
+                "#", "//", "/*", "Both B and C",
+                'D', 1);
         InsertIntoDatabase.insertQuizQuestion(conn, 4, q10);
         System.out.println("  ✓ Quiz 4: 3 questions (1 pt each)");
 
         // Question for Quiz 5 (was linked to deleted quiz, now added to Quiz 9)
         int q11 = InsertIntoDatabase.insertMcq(conn,
-            "how old are u",
-            "10", "12", "15", "16",
-            'B', 1);
+                "how old are u",
+                "10", "12", "15", "16",
+                'B', 1);
         InsertIntoDatabase.insertQuizQuestion(conn, 9, q11);
 
         int q12 = InsertIntoDatabase.insertMcq(conn,
-            "how many siblings?",
-            "1", "2", "3", "4",
-            'A', 1);
+                "how many siblings?",
+                "1", "2", "3", "4",
+                'A', 1);
         InsertIntoDatabase.insertQuizQuestion(conn, 9, q12);
         System.out.println("  ✓ Quiz 9: 2 questions (1 pt each)");
 
         // Questions for Quiz 10 (groupA)
         int q13 = InsertIntoDatabase.insertMcq(conn,
-            "amazing weather",
-            "yes", "no", "maybe", "idk",
-            'A', 1);
+                "amazing weather",
+                "yes", "no", "maybe", "idk",
+                'A', 1);
         InsertIntoDatabase.insertQuizQuestion(conn, 10, q13);
 
         int q14 = InsertIntoDatabase.insertMcq(conn,
-            "how old are u",
-            "10", "11", "12", "13",
-            'A', 1);
+                "how old are u",
+                "10", "11", "12", "13",
+                'A', 1);
         InsertIntoDatabase.insertQuizQuestion(conn, 10, q14);
 
         int q15 = InsertIntoDatabase.insertMcq(conn,
-            "1",
-            "1", "2", "3", "4",
-            'A', 1);
+                "1",
+                "1", "2", "3", "4",
+                'A', 1);
         InsertIntoDatabase.insertQuizQuestion(conn, 10, q15);
         System.out.println("  ✓ Quiz 10: 3 questions (1 pt each)");
 
         // Questions for Quiz 11 (best group ever)
         int q16 = InsertIntoDatabase.insertMcq(conn,
-            "favourite food",
-            "pizza", "burger", "pasta", "sushi",
-            'A', 1);
+                "favourite food",
+                "pizza", "burger", "pasta", "sushi",
+                'A', 1);
         InsertIntoDatabase.insertQuizQuestion(conn, 11, q16);
 
         int q17 = InsertIntoDatabase.insertMcq(conn,
-            "how many fingers do we have",
-            "8", "9", "10", "20",
-            'D', 1);
+                "how many fingers do we have",
+                "8", "9", "10", "20",
+                'D', 1);
         InsertIntoDatabase.insertQuizQuestion(conn, 11, q17);
         System.out.println("  ✓ Quiz 11: 2 questions (1 pt each)");
 
         // Question for Quiz 12 (Intro to programming)
         int q18 = InsertIntoDatabase.insertMcq(conn,
-            "question1",
-            "answer1", "answer2", "answer3", "answer4",
-            'A', 1);
+                "question1",
+                "answer1", "answer2", "answer3", "answer4",
+                'A', 1);
         InsertIntoDatabase.insertQuizQuestion(conn, 12, q18);
         System.out.println("  ✓ Quiz 12: 1 question (1 pt)");
     }
