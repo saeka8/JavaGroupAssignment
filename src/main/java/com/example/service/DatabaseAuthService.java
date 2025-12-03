@@ -50,7 +50,7 @@ public class DatabaseAuthService implements AuthService {
                     role = User.Role.STUDENT;
                 }
 
-                User user = new User(id, email, password, name, lastname, role);
+                User user = User.createUser(id, email, password, name, lastname, role);
                 return Optional.of(user);
             }
         } catch (SQLException e) {

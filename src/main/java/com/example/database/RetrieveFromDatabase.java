@@ -36,7 +36,7 @@ public class RetrieveFromDatabase {
                 }else {
                     user_role = STUDENT;
                 }
-                user = new User(id,email,password,name,lastname,user_role);
+                user = User.createUser(id, email, password, name, lastname, user_role);
             }
         }
         return user;

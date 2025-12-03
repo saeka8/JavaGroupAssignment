@@ -130,8 +130,8 @@ public class DatabaseUserService implements UserService {
             );
 
             // Return user with the generated ID
-            return new User(userId, user.getEmail(), user.getPassword(),
-                          user.getFirstName(), user.getLastName(), user.getRole());
+            return User.createUser(userId, user.getEmail(), user.getPassword(),
+                    user.getFirstName(), user.getLastName(), user.getRole());
         } catch (SQLException e) {
             System.err.println("Error creating user: " + e.getMessage());
             return user;
@@ -238,6 +238,6 @@ public class DatabaseUserService implements UserService {
             role = User.Role.STUDENT;
         }
 
-        return new User(id, email, password, name, lastname, role);
+        return User.createUser(id, email, password, name, lastname, role);
     }
 }

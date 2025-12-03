@@ -276,6 +276,6 @@ public class DatabaseGroupService implements GroupService {
             role = User.Role.STUDENT;
         }
 
-        return new User(id, email, password, name, lastname, role);
+        return User.createUser(id, email, password, name, lastname, role);
     }
 }

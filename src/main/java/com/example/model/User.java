@@ -4,7 +4,7 @@ package com.example.model;
  * Represents a user in the Quiz Platform.
  * Supports three roles: ADMIN, TEACHER, STUDENT.
  */
-public class User {
+public abstract class User {
     
     public enum Role {
         ADMIN, TEACHER, STUDENT
@@ -17,11 +17,7 @@ public class User {
     private String lastName;
     private Role role;
     
-    // Default constructor
-    public User() {}
-    
-    // Full constructor
-    public User(int id, String email, String password, String firstName, String lastName, Role role) {
+    protected User(int id, String email, String password, String firstName, String lastName, Role role) {
         this.id = id;
         this.email = email;
         this.password = password;
@@ -30,13 +26,27 @@ public class User {
         this.role = role;
     }
     
-    // Constructor without ID (for new users before DB insertion)
-    public User(String email, String password, String firstName, String lastName, Role role) {
+    protected User(String email, String password, String firstName, String lastName, Role role) {
         this.email = email;
         this.password = password;
         this.firstName = firstName;
         this.lastName = lastName;
         this.role = role;
+    }
+
+    /**
+     * Factory helpers to create role-specific user instances.
+     */
+    public static User createUser(int id, String email, String password, String firstName, String lastName, Role role) {
+        return switch (role) {
+            case ADMIN -> new AdminUser(id, email, password, firstName, lastName);
+            case TEACHER -> new TeacherUser(id, email, password, firstName, lastName);
+            case STUDENT -> new StudentUser(id, email, password, firstName, lastName);
+        };
+    }
+
+    public static User createUser(String email, String password, String firstName, String lastName, Role role) {
+        return createUser(0, email, password, firstName, lastName, role);
     }
     
     // Getters and Setters

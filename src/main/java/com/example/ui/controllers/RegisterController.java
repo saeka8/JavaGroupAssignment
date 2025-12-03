@@ -83,7 +83,7 @@ public class RegisterController {
         } else {
             role = User.Role.STUDENT;
         }
-        User newUser = new User(email, password, firstName, lastName, role);
+        User newUser = User.createUser(email, password, firstName, lastName, role);
 
         if (authService.register(newUser)) {
             showSuccess("Account created successfully! You can now sign in.");

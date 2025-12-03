@@ -459,6 +459,6 @@ public class DatabaseQuizService implements QuizService {
             role = User.Role.STUDENT;
         }
 
-        return new User(id, email, password, name, lastname, role);
+        return User.createUser(id, email, password, name, lastname, role);
     }
 }

@@ -292,7 +292,7 @@ public class AdminDashboardController {
                     default -> User.Role.STUDENT;
                 };
 
-                User newUser = new User(email, password, firstName, lastName, role);
+                User newUser = User.createUser(email, password, firstName, lastName, role);
                 return userService.createUser(newUser);
             }
             return null;
