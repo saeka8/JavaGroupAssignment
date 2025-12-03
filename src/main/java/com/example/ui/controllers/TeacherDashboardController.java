@@ -1,9 +1,16 @@
 package com.example.ui.controllers;
 
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
 import com.example.model.Group;
 import com.example.model.Quiz;
 import com.example.model.User;
 import com.example.quizlogic.QuizAttempt;
+import com.example.quizlogic.Question;
 import com.example.service.AttemptService;
 import com.example.service.GroupService;
 import com.example.service.QuizService;
@@ -11,6 +18,7 @@ import com.example.service.ServiceLocator;
 import com.example.service.UserService;
 import com.example.ui.util.SceneManager;
 import com.example.ui.util.SessionManager;
+
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
@@ -18,16 +26,26 @@ import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
-import javafx.scene.control.*;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Button;
+import javafx.scene.control.ButtonBar;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.CheckBox;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.Dialog;
+import javafx.scene.control.Label;
+import javafx.scene.control.ListCell;
+import javafx.scene.control.ScrollPane;
+import javafx.scene.control.Separator;
+import javafx.scene.control.TableCell;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
+import javafx.scene.control.TextArea;
+import javafx.scene.control.TextField;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
-
-import java.time.format.DateTimeFormatter;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 /**
  * Controller for the Teacher Dashboard.
@@ -36,36 +54,70 @@ import java.util.stream.Collectors;
 public class TeacherDashboardController {
 
     // Header
-    @FXML private Label welcomeLabel;
-    @FXML private Label userEmailLabel;
+    @FXML
+    private Label welcomeLabel;
+    @FXML
+    private Label userEmailLabel;
 
     // Stats
-    @FXML private Label myQuizzesCount;
-    @FXML private Label totalAttemptsCount;
-    @FXML private Label averageScoreLabel;
+    @FXML
+    private Label myQuizzesCount;
+    @FXML
+    private Label totalAttemptsCount;
+    @FXML
+    private Label averageScoreLabel;
 
     // Groups Table
-    @FXML private TableView<Group> groupsTable;
-    @FXML private TableColumn<Group, String> groupNameColumn;
-    @FXML private TableColumn<Group, Integer> groupStudentsColumn;
-    @FXML private TableColumn<Group, Integer> groupQuizzesColumn;
-    @FXML private Label selectedGroupLabel;
+    @FXML
+    private TableView<Group> groupsTable;
+    @FXML
+    private TableColumn<Group, String> groupNameColumn;
+    @FXML
+    private TableColumn<Group, Integer> groupStudentsColumn;
+    @FXML
+    private TableColumn<Group, Integer> groupQuizzesColumn;
+    @FXML
+    private Label selectedGroupLabel;
 
     // My Quizzes Table
-    @FXML private TableView<Quiz> quizzesTable;
-    @FXML private TableColumn<Quiz, String> quizTitleColumn;
-    @FXML private TableColumn<Quiz, String> quizDescriptionColumn;
-    @FXML private TableColumn<Quiz, String> quizQuestionsColumn;
-    @FXML private TableColumn<Quiz, String> quizAttemptsColumn;
-    @FXML private TableColumn<Quiz, String> quizAvgScoreColumn;
-    @FXML private TextField quizSearchField;
+    @FXML
+    private TableView<Quiz> quizzesTable;
+    @FXML
+    private TableColumn<Quiz, String> quizTitleColumn;
+    @FXML
+    private TableColumn<Quiz, String> quizDescriptionColumn;
+    @FXML
+    private TableColumn<Quiz, String> quizQuestionsColumn;
+    @FXML
+    private TableColumn<Quiz, String> quizAttemptsColumn;
+    @FXML
+    private TableColumn<Quiz, String> quizAvgScoreColumn;
+    @FXML
+    private TextField quizSearchField;
 
-    // Results Table
-    @FXML private TableView<QuizAttempt> resultsTable;
-    @FXML private TableColumn<QuizAttempt, String> resultStudentColumn;
-    @FXML private TableColumn<QuizAttempt, String> resultQuizColumn;
-    @FXML private TableColumn<QuizAttempt, String> resultScoreColumn;
-    @FXML private TableColumn<QuizAttempt, String> resultDateColumn;
+    // Students Table (new tab)
+    @FXML
+    private TableView<User> studentsTable;
+    @FXML
+    private TableColumn<User, String> studentNameColumn;
+    @FXML
+    private TableColumn<User, String> studentEmailColumn;
+    @FXML
+    private TableColumn<User, String> studentGroupAvgColumn;
+
+    // Results Table (modified)
+    @FXML
+    private TableView<QuizAttempt> resultsTable;
+    @FXML
+    private TableColumn<QuizAttempt, Integer> resultAttemptColumn;
+    @FXML
+    private TableColumn<QuizAttempt, String> resultScoreColumn;
+    @FXML
+    private TableColumn<QuizAttempt, String> resultPercentageColumn;
+    @FXML
+    private TableColumn<QuizAttempt, String> resultDateColumn;
+    @FXML
+    private Label resultsFilterLabel;
 
     // Services
     private final QuizService quizService = ServiceLocator.getQuizService();
@@ -78,6 +130,8 @@ public class TeacherDashboardController {
     private FilteredList<Quiz> filteredQuizzes;
     private User currentUser;
     private Group selectedGroup;
+    private Quiz selectedQuiz;
+    private User selectedStudent;
 
     @FXML
     private void initialize() {
@@ -86,6 +140,7 @@ public class TeacherDashboardController {
         setupHeader();
         setupGroupsTable();
         setupQuizzesTable();
+        setupStudentsTable();
         setupResultsTable();
         setupSearch();
         loadData();
@@ -116,16 +171,21 @@ public class TeacherDashboardController {
         groupsTable.getSelectionModel().selectedItemProperty().addListener((obs, oldSelection, newSelection) -> {
             if (newSelection != null) {
                 selectedGroup = newSelection;
-                selectedGroupLabel.setText("📚 Selected: " + newSelection.getName() + " - Manage quizzes for this group below");
+                selectedGroupLabel
+                        .setText("📚 Selected: " + newSelection.getName() + " - Manage quizzes for this group below");
                 loadQuizzesForSelectedGroup();
+                loadStudentsForSelectedGroup();
                 updateStatsForGroup();
+                clearResultsFilter();
             } else {
                 selectedGroup = null;
                 selectedGroupLabel.setText("💡 Select a group to manage its quizzes");
                 quizzesTable.setItems(FXCollections.observableArrayList());
+                studentsTable.setItems(FXCollections.observableArrayList());
                 myQuizzesCount.setText("0");
                 totalAttemptsCount.setText("0");
                 averageScoreLabel.setText("N/A");
+                clearResultsFilter();
             }
         });
     }
@@ -146,12 +206,32 @@ public class TeacherDashboardController {
         });
 
         quizAvgScoreColumn.setCellValueFactory(cellData -> {
-            int quizId = cellData.getValue().getId();
-            double avg = attemptService.getAverageScoreForQuiz(quizId);
-            if (avg == 0 && attemptService.getAttemptsByQuiz(quizId).isEmpty()) {
+            Quiz quiz = cellData.getValue();
+            List<QuizAttempt> attempts = attemptService.getAttemptsByQuiz(quiz.getId());
+
+            if (attempts.isEmpty()) {
                 return new SimpleStringProperty("N/A");
             }
-            return new SimpleStringProperty(String.format("%.1f%%", avg));
+
+            // Calculate total possible score
+            int totalScore = quiz.getQuestions().stream()
+                    .mapToInt(Question::getAssignedScore)
+                    .sum();
+
+            if (totalScore == 0) {
+                return new SimpleStringProperty("N/A");
+            }
+
+            // Calculate average score
+            double avgScore = attempts.stream()
+                    .mapToInt(QuizAttempt::getTotalScore)
+                    .average()
+                    .orElse(0.0);
+
+            // Calculate percentage
+            double percentage = (avgScore / totalScore) * 100;
+
+            return new SimpleStringProperty(String.format("%.1f%%", percentage));
         });
 
         // Color code average scores
@@ -164,46 +244,80 @@ public class TeacherDashboardController {
                     setStyle("");
                 } else {
                     setText(item);
-                    if (!item.equals("N/A")) {
-                        int score = Integer.parseInt(item.replace("%", ""));
-                        if (score >= 80) {
-                            setStyle("-fx-text-fill: #28a745; -fx-font-weight: bold;");
-                        } else if (score >= 60) {
-                            setStyle("-fx-text-fill: #ffc107; -fx-font-weight: bold;");
-                        } else {
-                            setStyle("-fx-text-fill: #dc3545; -fx-font-weight: bold;");
-                        }
-                    } else {
+                    if (item.equals("N/A")) {
                         setStyle("-fx-text-fill: #6c757d;");
+                    } else {
+                        try {
+                            double percentage = Double.parseDouble(item.replace("%", ""));
+                            if (percentage >= 80) {
+                                setStyle("-fx-text-fill: #28a745; -fx-font-weight: bold;");
+                            } else if (percentage >= 60) {
+                                setStyle("-fx-text-fill: #ffc107; -fx-font-weight: bold;");
+                            } else {
+                                setStyle("-fx-text-fill: #dc3545; -fx-font-weight: bold;");
+                            }
+                        } catch (Exception e) {
+                            setStyle("-fx-text-fill: #6c757d;");
+                        }
                     }
                 }
             }
         });
+
+        // Listen for quiz selection
+        quizzesTable.getSelectionModel().selectedItemProperty().addListener((obs, oldSelection, newSelection) -> {
+            selectedQuiz = newSelection;
+            updateResultsFilter();
+        });
     }
 
-    private void setupResultsTable() {
-        resultStudentColumn.setCellValueFactory(cellData -> {
-            int studentId = cellData.getValue().getStudentId();
-            String name = userService.getUserById(studentId)
-                    .map(User::getFullName)
-                    .orElse("Unknown Student");
-            return new SimpleStringProperty(name);
+    private void setupStudentsTable() {
+        studentNameColumn.setCellValueFactory(cellData ->
+                new SimpleStringProperty(cellData.getValue().getFullName()));
+        studentEmailColumn.setCellValueFactory(new PropertyValueFactory<>("email"));
+
+        studentGroupAvgColumn.setCellValueFactory(cellData -> {
+            if (selectedGroup == null) {
+                return new SimpleStringProperty("N/A");
+            }
+
+            User student = cellData.getValue();
+            List<Quiz> groupQuizzes = quizService.getQuizzesByGroup(selectedGroup.getId());
+
+            if (groupQuizzes.isEmpty()) {
+                return new SimpleStringProperty("N/A");
+            }
+
+            // Calculate average percentage across all quizzes in the group (best attempts only)
+            List<Double> percentages = new ArrayList<>();
+
+            for (Quiz quiz : groupQuizzes) {
+                Optional<Integer> bestScore = attemptService.getBestScore(student.getId(), quiz.getId());
+                if (bestScore.isPresent()) {
+                    int totalScore = quiz.getQuestions().stream()
+                            .mapToInt(Question::getAssignedScore)
+                            .sum();
+                    if (totalScore > 0) {
+                        double percentage = (bestScore.get() * 100.0) / totalScore;
+                        percentages.add(percentage);
+                    }
+                }
+            }
+
+            if (percentages.isEmpty()) {
+                return new SimpleStringProperty("N/A");
+            }
+
+            double avgPercentage = percentages.stream()
+                    .mapToDouble(Double::doubleValue)
+                    .average()
+                    .orElse(0.0);
+
+            return new SimpleStringProperty(String.format("%.1f%%", avgPercentage));
         });
 
-        resultQuizColumn.setCellValueFactory(cellData -> {
-            int quizId = cellData.getValue().getQuizId();
-            String title = quizService.getQuizById(quizId)
-                    .map(Quiz::getTitle)
-                    .orElse("Unknown Quiz");
-            return new SimpleStringProperty(title);
-        });
-
-        resultScoreColumn.setCellValueFactory(cellData -> {
-            int score = cellData.getValue().getTotalScore();
-            return new SimpleStringProperty(String.format("%.1f%%", score));
-        });
-
-        resultScoreColumn.setCellFactory(column -> new TableCell<>() {
+        // Color code the average column
+        studentGroupAvgColumn.setCellFactory(column -> new TableCell<>() {
             @Override
             protected void updateItem(String item, boolean empty) {
                 super.updateItem(item, empty);
@@ -212,13 +326,99 @@ public class TeacherDashboardController {
                     setStyle("");
                 } else {
                     setText(item);
-                    int score = Integer.parseInt(item.replace("%", ""));
-                    if (score >= 80) {
-                        setStyle("-fx-text-fill: #28a745; -fx-font-weight: bold;");
-                    } else if (score >= 60) {
-                        setStyle("-fx-text-fill: #ffc107; -fx-font-weight: bold;");
+                    if (item.equals("N/A")) {
+                        setStyle("-fx-text-fill: #6c757d;");
                     } else {
-                        setStyle("-fx-text-fill: #dc3545; -fx-font-weight: bold;");
+                        try {
+                            double percentage = Double.parseDouble(item.replace("%", ""));
+                            if (percentage >= 80) {
+                                setStyle("-fx-text-fill: #28a745; -fx-font-weight: bold;");
+                            } else if (percentage >= 60) {
+                                setStyle("-fx-text-fill: #ffc107; -fx-font-weight: bold;");
+                            } else {
+                                setStyle("-fx-text-fill: #dc3545; -fx-font-weight: bold;");
+                            }
+                        } catch (Exception e) {
+                            setStyle("-fx-text-fill: #6c757d;");
+                        }
+                    }
+                }
+            }
+        });
+
+        // Listen for student selection
+        studentsTable.getSelectionModel().selectedItemProperty().addListener((obs, oldSelection, newSelection) -> {
+            selectedStudent = newSelection;
+            updateResultsFilter();
+        });
+    }
+
+    private void setupResultsTable() {
+        resultAttemptColumn.setCellValueFactory(new PropertyValueFactory<>("attemptNumber"));
+
+        resultScoreColumn.setCellValueFactory(cellData -> {
+            QuizAttempt attempt = cellData.getValue();
+            int score = attempt.getTotalScore();
+
+            // Get quiz to calculate total
+            Quiz quiz = quizService.getQuizById(attempt.getQuizId()).orElse(null);
+            if (quiz == null) {
+                return new SimpleStringProperty(score + " pts");
+            }
+
+            int totalScore = quiz.getQuestions().stream()
+                    .mapToInt(Question::getAssignedScore)
+                    .sum();
+
+            return new SimpleStringProperty(String.format("%d/%d pts", score, totalScore));
+        });
+
+        resultPercentageColumn.setCellValueFactory(cellData -> {
+            QuizAttempt attempt = cellData.getValue();
+            int score = attempt.getTotalScore();
+
+            Quiz quiz = quizService.getQuizById(attempt.getQuizId()).orElse(null);
+            if (quiz == null) {
+                return new SimpleStringProperty("N/A");
+            }
+
+            int totalScore = quiz.getQuestions().stream()
+                    .mapToInt(Question::getAssignedScore)
+                    .sum();
+
+            if (totalScore == 0) {
+                return new SimpleStringProperty("N/A");
+            }
+
+            double percentage = (score * 100.0) / totalScore;
+            return new SimpleStringProperty(String.format("%.1f%%", percentage));
+        });
+
+        // Color code percentage
+        resultPercentageColumn.setCellFactory(column -> new TableCell<>() {
+            @Override
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setText(null);
+                    setStyle("");
+                } else {
+                    setText(item);
+                    if (item.equals("N/A")) {
+                        setStyle("-fx-text-fill: #6c757d;");
+                    } else {
+                        try {
+                            double percentage = Double.parseDouble(item.replace("%", ""));
+                            if (percentage >= 80) {
+                                setStyle("-fx-text-fill: #28a745; -fx-font-weight: bold;");
+                            } else if (percentage >= 60) {
+                                setStyle("-fx-text-fill: #ffc107; -fx-font-weight: bold;");
+                            } else {
+                                setStyle("-fx-text-fill: #dc3545; -fx-font-weight: bold;");
+                            }
+                        } catch (Exception e) {
+                            setStyle("-fx-text-fill: #6c757d;");
+                        }
                     }
                 }
             }
@@ -239,13 +439,14 @@ public class TeacherDashboardController {
                 }
                 String lowerFilter = newVal.toLowerCase();
                 return quiz.getTitle().toLowerCase().contains(lowerFilter) ||
-                       quiz.getDescription().toLowerCase().contains(lowerFilter);
+                        quiz.getDescription().toLowerCase().contains(lowerFilter);
             });
         });
     }
 
     private void loadData() {
-        if (currentUser == null) return;
+        if (currentUser == null)
+            return;
 
         // Load teacher's groups
         List<Group> groups = groupService.getGroupsByTeacher(currentUser.getId());
@@ -256,24 +457,29 @@ public class TeacherDashboardController {
     }
 
     private void loadQuizzesForSelectedGroup() {
-        if (selectedGroup == null) return;
+        if (selectedGroup == null)
+            return;
 
         // Load quizzes for the selected group
         List<Quiz> quizzes = quizService.getQuizzesByGroup(selectedGroup.getId());
         myQuizzes = FXCollections.observableArrayList(quizzes);
         filteredQuizzes = new FilteredList<>(myQuizzes, p -> true);
         quizzesTable.setItems(filteredQuizzes);
+    }
 
-        // Load all attempts for this group's quizzes
-        List<QuizAttempt> allAttempts = quizzes.stream()
-                .flatMap(q -> attemptService.getAttemptsByQuiz(q.getId()).stream())
-                .sorted((a, b) -> b.getAttemptedAt().compareTo(a.getAttemptedAt()))
-                .collect(Collectors.toList());
-        resultsTable.setItems(FXCollections.observableArrayList(allAttempts));
+    private void loadStudentsForSelectedGroup() {
+        if (selectedGroup == null) {
+            studentsTable.setItems(FXCollections.observableArrayList());
+            return;
+        }
+
+        List<User> students = groupService.getStudentsInGroup(selectedGroup.getId());
+        studentsTable.setItems(FXCollections.observableArrayList(students));
     }
 
     private void updateStatsForGroup() {
-        if (selectedGroup == null) return;
+        if (selectedGroup == null)
+            return;
 
         List<Quiz> quizzes = quizService.getQuizzesByGroup(selectedGroup.getId());
         List<QuizAttempt> attempts = quizzes.stream()
@@ -283,30 +489,58 @@ public class TeacherDashboardController {
         myQuizzesCount.setText(String.valueOf(quizzes.size()));
         totalAttemptsCount.setText(String.valueOf(attempts.size()));
 
-        if (attempts.isEmpty()) {
+        if (attempts.isEmpty() || quizzes.isEmpty()) {
             averageScoreLabel.setText("N/A");
         } else {
-            double avg = attempts.stream()
-                    .mapToDouble(QuizAttempt::getScore)
-                    .average()
-                    .orElse(0.0);
-            averageScoreLabel.setText(String.format("%.1f%%", avg));
+            // Calculate average percentage across all attempts
+            List<Double> percentages = new ArrayList<>();
+
+            for (QuizAttempt attempt : attempts) {
+                Quiz quiz = quizService.getQuizById(attempt.getQuizId()).orElse(null);
+                if (quiz != null) {
+                    int totalScore = quiz.getQuestions().stream()
+                            .mapToInt(Question::getAssignedScore)
+                            .sum();
+                    if (totalScore > 0) {
+                        double percentage = (attempt.getTotalScore() * 100.0) / totalScore;
+                        percentages.add(percentage);
+                    }
+                }
+            }
+
+            if (percentages.isEmpty()) {
+                averageScoreLabel.setText("N/A");
+            } else {
+                double avgPercentage = percentages.stream()
+                        .mapToDouble(Double::doubleValue)
+                        .average()
+                        .orElse(0.0);
+                averageScoreLabel.setText(String.format("%.1f%%", avgPercentage));
+            }
         }
     }
 
-    private void updateStats(List<Quiz> quizzes, List<QuizAttempt> attempts) {
-        myQuizzesCount.setText(String.valueOf(quizzes.size()));
-        totalAttemptsCount.setText(String.valueOf(attempts.size()));
-
-        if (attempts.isEmpty()) {
-            averageScoreLabel.setText("N/A");
-        } else {
-            double avg = attempts.stream()
-                    .mapToDouble(QuizAttempt::getScore)
-                    .average()
-                    .orElse(0.0);
-            averageScoreLabel.setText(String.format("%.1f%%", avg));
+    private void updateResultsFilter() {
+        if (selectedQuiz == null || selectedStudent == null) {
+            clearResultsFilter();
+            return;
         }
+
+        // Load attempts for the specific student and quiz
+        List<QuizAttempt> attempts = attemptService.getStudentAttemptsForQuiz(selectedStudent.getId(), selectedQuiz.getId());
+
+        // Sort by attempt number (most recent first)
+        attempts.sort((a, b) -> Integer.compare(b.getAttemptNumber(), a.getAttemptNumber()));
+
+        resultsTable.setItems(FXCollections.observableArrayList(attempts));
+
+        resultsFilterLabel.setText(String.format("📊 Showing attempts for: %s - %s",
+                selectedStudent.getFullName(), selectedQuiz.getTitle()));
+    }
+
+    private void clearResultsFilter() {
+        resultsTable.setItems(FXCollections.observableArrayList());
+        resultsFilterLabel.setText("💡 Select a quiz from 'My Quizzes' tab and a student from 'Student List' tab to view their attempts");
     }
 
     @FXML
@@ -357,7 +591,7 @@ public class TeacherDashboardController {
                     quiz.setTitle(title);
                     quiz.setDescription(descField.getText().trim());
                     quiz.setTeacherId(currentUser.getId());
-                    quiz.setGroupId(selectedGroup.getId());  // Set the group ID
+                    quiz.setGroupId(selectedGroup.getId());
                     quiz.setTeacherName(currentUser.getFullName());
                     return quizService.createQuiz(quiz);
                 }
@@ -369,7 +603,7 @@ public class TeacherDashboardController {
         result.ifPresent(quiz -> {
             showAlert(Alert.AlertType.INFORMATION, "Quiz Created",
                     "Quiz '" + quiz.getTitle() + "' created successfully!\n\n" +
-                    "Use the '❓ Add Questions' button to add questions to this quiz.");
+                            "Use the '❓ Manage Questions' button to add questions to this quiz.");
             // Refresh groups table to update quiz counts
             groupsTable.refresh();
             loadQuizzesForSelectedGroup();
@@ -381,7 +615,7 @@ public class TeacherDashboardController {
     private void handleAssignQuiz() {
         Quiz selectedQuiz = quizzesTable.getSelectionModel().getSelectedItem();
         if (selectedQuiz == null) {
-            showAlert(Alert.AlertType.WARNING, "No Quiz Selected", 
+            showAlert(Alert.AlertType.WARNING, "No Quiz Selected",
                     "Please select a quiz from the table to assign.");
             return;
         }
@@ -389,7 +623,7 @@ public class TeacherDashboardController {
         // Get all students
         List<User> students = userService.getUsersByRole(User.Role.STUDENT);
         if (students.isEmpty()) {
-            showAlert(Alert.AlertType.INFORMATION, "No Students", 
+            showAlert(Alert.AlertType.INFORMATION, "No Students",
                     "There are no students registered in the system.");
             return;
         }
@@ -452,7 +686,7 @@ public class TeacherDashboardController {
             List<Integer> studentIds = selectedStudents.stream()
                     .map(User::getId)
                     .collect(Collectors.toList());
-            
+
             if (!studentIds.isEmpty()) {
                 quizService.assignQuizToStudents(selectedQuiz.getId(), studentIds);
                 showAlert(Alert.AlertType.INFORMATION, "Quiz Assigned",
@@ -465,7 +699,7 @@ public class TeacherDashboardController {
     private void handleDeleteQuiz() {
         Quiz selectedQuiz = quizzesTable.getSelectionModel().getSelectedItem();
         if (selectedQuiz == null) {
-            showAlert(Alert.AlertType.WARNING, "No Quiz Selected", 
+            showAlert(Alert.AlertType.WARNING, "No Quiz Selected",
                     "Please select a quiz from the table to delete.");
             return;
         }
@@ -473,16 +707,270 @@ public class TeacherDashboardController {
         Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
         confirm.setTitle("Delete Quiz");
         confirm.setHeaderText("Are you sure you want to delete this quiz?");
-        confirm.setContentText("Quiz: " + selectedQuiz.getTitle() + 
+        confirm.setContentText("Quiz: " + selectedQuiz.getTitle() +
                 "\n\nThis action cannot be undone. All associated data will be lost.");
 
         Optional<ButtonType> result = confirm.showAndWait();
         if (result.isPresent() && result.get() == ButtonType.OK) {
             quizService.deleteQuiz(selectedQuiz.getId());
-            showAlert(Alert.AlertType.INFORMATION, "Quiz Deleted", 
+            showAlert(Alert.AlertType.INFORMATION, "Quiz Deleted",
                     "Quiz '" + selectedQuiz.getTitle() + "' has been deleted.");
             loadData();
+            if (selectedGroup != null) {
+                loadQuizzesForSelectedGroup();
+                updateStatsForGroup();
+            }
         }
+    }
+
+    @FXML
+    private void handleEditQuiz() {
+        Quiz selectedQuiz = quizzesTable.getSelectionModel().getSelectedItem();
+        if (selectedQuiz == null) {
+            showAlert(Alert.AlertType.WARNING, "No Quiz Selected",
+                    "Please select a quiz from the table to edit.");
+            return;
+        }
+
+        Dialog<Quiz> dialog = new Dialog<>();
+        dialog.setTitle("Edit Quiz");
+        dialog.setHeaderText("Edit details for: " + selectedQuiz.getTitle());
+
+        ButtonType saveButton = new ButtonType("Save", ButtonBar.ButtonData.OK_DONE);
+        dialog.getDialogPane().getButtonTypes().addAll(saveButton, ButtonType.CANCEL);
+
+        GridPane grid = new GridPane();
+        grid.setHgap(10);
+        grid.setVgap(10);
+        grid.setPadding(new Insets(20, 150, 10, 10));
+
+        TextField titleField = new TextField(selectedQuiz.getTitle());
+        titleField.setPromptText("Quiz Title");
+        titleField.setPrefWidth(300);
+
+        TextArea descField = new TextArea(selectedQuiz.getDescription());
+        descField.setPromptText("Description");
+        descField.setPrefRowCount(3);
+        descField.setPrefWidth(300);
+
+        grid.add(new Label("Title:"), 0, 0);
+        grid.add(titleField, 1, 0);
+        grid.add(new Label("Description:"), 0, 1);
+        grid.add(descField, 1, 1);
+
+        dialog.getDialogPane().setContent(grid);
+
+        dialog.setResultConverter(dialogButton -> {
+            if (dialogButton == saveButton) {
+                String title = titleField.getText().trim();
+                if (!title.isEmpty()) {
+                    selectedQuiz.setTitle(title);
+                    selectedQuiz.setDescription(descField.getText().trim());
+                    return selectedQuiz;
+                }
+            }
+            return null;
+        });
+
+        Optional<Quiz> result = dialog.showAndWait();
+        result.ifPresent(quiz -> {
+            if (quizService.updateQuiz(quiz)) {
+                showAlert(Alert.AlertType.INFORMATION, "Quiz Updated",
+                        "Quiz details updated successfully.");
+                quizzesTable.refresh();
+            } else {
+                showAlert(Alert.AlertType.ERROR, "Error", "Failed to update quiz.");
+            }
+        });
+    }
+
+    @FXML
+    private void handleManageQuestions() {
+        Quiz selectedQuiz = quizzesTable.getSelectionModel().getSelectedItem();
+        if (selectedQuiz == null) {
+            showAlert(Alert.AlertType.WARNING, "No Quiz Selected",
+                    "Please select a quiz from the table to manage questions.");
+            return;
+        }
+
+        // Create a custom dialog for managing questions
+        Dialog<Void> dialog = new Dialog<>();
+        dialog.setTitle("Manage Questions");
+        dialog.setHeaderText("Manage questions for: " + selectedQuiz.getTitle());
+
+        ButtonType closeButton = new ButtonType("Close", ButtonBar.ButtonData.CANCEL_CLOSE);
+        dialog.getDialogPane().getButtonTypes().add(closeButton);
+
+        // Layout
+        VBox content = new VBox(10);
+        content.setPadding(new Insets(10));
+        content.setPrefSize(600, 400);
+
+        // Table for questions
+        TableView<com.example.quizlogic.Question> questionsTable = new TableView<>();
+
+        TableColumn<com.example.quizlogic.Question, String> questionCol = new TableColumn<>("Question");
+        questionCol.setCellValueFactory(new PropertyValueFactory<>("text"));
+        questionCol.setPrefWidth(300);
+
+        TableColumn<com.example.quizlogic.Question, Integer> scoreCol = new TableColumn<>("Points");
+        scoreCol.setCellValueFactory(new PropertyValueFactory<>("assignedScore"));
+        scoreCol.setPrefWidth(50);
+
+        questionsTable.getColumns().addAll(questionCol, scoreCol);
+
+        // Load questions
+        List<com.example.quizlogic.Question> questions = quizService.getQuestionsByQuiz(selectedQuiz.getId());
+        ObservableList<com.example.quizlogic.Question> questionsList = FXCollections.observableArrayList(questions);
+        questionsTable.setItems(questionsList);
+
+        // Buttons
+        HBox actions = new HBox(10);
+        Button addBtn = new Button("Add New");
+        Button editBtn = new Button("Edit Selected");
+        Button deleteBtn = new Button("Delete Selected");
+
+        addBtn.setOnAction(e -> {
+            handleAddQuestionInternal(selectedQuiz, questionsList);
+        });
+
+        editBtn.setOnAction(e -> {
+            com.example.quizlogic.Question selectedQ = questionsTable.getSelectionModel().getSelectedItem();
+            if (selectedQ != null) {
+                handleEditQuestionInternal(selectedQ, questionsList);
+            } else {
+                showAlert(Alert.AlertType.WARNING, "No Selection", "Select a question to edit.");
+            }
+        });
+
+        deleteBtn.setOnAction(e -> {
+            com.example.quizlogic.Question selectedQ = questionsTable.getSelectionModel().getSelectedItem();
+            if (selectedQ != null) {
+                Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
+                confirm.setTitle("Delete Question");
+                confirm.setHeaderText("Delete this question?");
+                confirm.setContentText(selectedQ.getText());
+
+                if (confirm.showAndWait().orElse(ButtonType.CANCEL) == ButtonType.OK) {
+                    if (quizService.deleteQuestion(selectedQ.getId())) {
+                        questionsList.remove(selectedQ);
+                    } else {
+                        showAlert(Alert.AlertType.ERROR, "Error", "Failed to delete question.");
+                    }
+                }
+            } else {
+                showAlert(Alert.AlertType.WARNING, "No Selection", "Select a question to delete.");
+            }
+        });
+
+        actions.getChildren().addAll(addBtn, editBtn, deleteBtn);
+        content.getChildren().addAll(questionsTable, actions);
+
+        dialog.getDialogPane().setContent(content);
+        dialog.showAndWait();
+
+        // Refresh main table stats
+        loadQuizzesForSelectedGroup();
+    }
+
+    private void handleAddQuestionInternal(Quiz quiz, ObservableList<com.example.quizlogic.Question> list) {
+        Dialog<com.example.quizlogic.Question> dialog = createQuestionDialog(null);
+        dialog.setTitle("Add Question");
+
+        dialog.showAndWait().ifPresent(q -> {
+            if (quizService.addQuestionToQuiz(quiz.getId(), q.getText(), q.getOptionA(), q.getOptionB(),
+                    q.getOptionC(), q.getOptionD(), q.getCorrectAnswer(), q.getAssignedScore())) {
+                // Reload to get the ID
+                list.setAll(quizService.getQuestionsByQuiz(quiz.getId()));
+            }
+        });
+    }
+
+    private void handleEditQuestionInternal(com.example.quizlogic.Question q,
+            ObservableList<com.example.quizlogic.Question> list) {
+        Dialog<com.example.quizlogic.Question> dialog = createQuestionDialog(q);
+        dialog.setTitle("Edit Question");
+
+        dialog.showAndWait().ifPresent(updatedQ -> {
+            // Update the existing object with new values
+            q.setText(updatedQ.getText());
+            q.setOptionA(updatedQ.getOptionA());
+            q.setOptionB(updatedQ.getOptionB());
+            q.setOptionC(updatedQ.getOptionC());
+            q.setOptionD(updatedQ.getOptionD());
+            q.setCorrectAnswer(updatedQ.getCorrectAnswer());
+            q.setAssignedScore(updatedQ.getAssignedScore());
+
+            if (quizService.updateQuestion(q)) {
+                // Refresh list view
+                int index = list.indexOf(q);
+                list.set(index, q);
+            } else {
+                showAlert(Alert.AlertType.ERROR, "Error", "Failed to update question.");
+            }
+        });
+    }
+
+    private Dialog<com.example.quizlogic.Question> createQuestionDialog(com.example.quizlogic.Question existing) {
+        Dialog<com.example.quizlogic.Question> dialog = new Dialog<>();
+        ButtonType saveBtn = new ButtonType("Save", ButtonBar.ButtonData.OK_DONE);
+        dialog.getDialogPane().getButtonTypes().addAll(saveBtn, ButtonType.CANCEL);
+
+        GridPane grid = new GridPane();
+        grid.setHgap(10);
+        grid.setVgap(10);
+        grid.setPadding(new Insets(20, 150, 10, 10));
+
+        TextField questionField = new TextField(existing != null ? existing.getText() : "");
+        TextField optionAField = new TextField(existing != null ? existing.getOptionA() : "");
+        TextField optionBField = new TextField(existing != null ? existing.getOptionB() : "");
+        TextField optionCField = new TextField(existing != null ? existing.getOptionC() : "");
+        TextField optionDField = new TextField(existing != null ? existing.getOptionD() : "");
+
+        ComboBox<String> correctOptionCombo = new ComboBox<>();
+        correctOptionCombo.getItems().addAll("A", "B", "C", "D");
+        correctOptionCombo.setValue(existing != null ? String.valueOf(existing.getCorrectAnswer()) : "A");
+
+        TextField scoreField = new TextField(existing != null ? String.valueOf(existing.getAssignedScore()) : "1");
+
+        grid.add(new Label("Question:"), 0, 0);
+        grid.add(questionField, 1, 0);
+        grid.add(new Label("Option A:"), 0, 1);
+        grid.add(optionAField, 1, 1);
+        grid.add(new Label("Option B:"), 0, 2);
+        grid.add(optionBField, 1, 2);
+        grid.add(new Label("Option C:"), 0, 3);
+        grid.add(optionCField, 1, 3);
+        grid.add(new Label("Option D:"), 0, 4);
+        grid.add(optionDField, 1, 4);
+        grid.add(new Label("Correct:"), 0, 5);
+        grid.add(correctOptionCombo, 1, 5);
+        grid.add(new Label("Points:"), 0, 6);
+        grid.add(scoreField, 1, 6);
+
+        dialog.getDialogPane().setContent(grid);
+
+        dialog.setResultConverter(btn -> {
+            if (btn == saveBtn) {
+                try {
+                    int score = Integer.parseInt(scoreField.getText().trim());
+                    return new com.example.quizlogic.Question(
+                            0, // ID ignored for new, preserved for edit in caller
+                            questionField.getText().trim(),
+                            optionAField.getText().trim(),
+                            optionBField.getText().trim(),
+                            optionCField.getText().trim(),
+                            optionDField.getText().trim(),
+                            correctOptionCombo.getValue().charAt(0),
+                            score);
+                } catch (Exception e) {
+                    return null;
+                }
+            }
+            return null;
+        });
+
+        return dialog;
     }
 
     @FXML
@@ -490,9 +978,11 @@ public class TeacherDashboardController {
         loadData();
         if (selectedGroup != null) {
             loadQuizzesForSelectedGroup();
+            loadStudentsForSelectedGroup();
             updateStatsForGroup();
         }
         quizSearchField.clear();
+        clearResultsFilter();
     }
 
     @FXML
@@ -559,7 +1049,7 @@ public class TeacherDashboardController {
 
         dialog.getDialogPane().setContent(grid);
 
-        final int[] questionsAdded = {0};
+        final int[] questionsAdded = { 0 };
 
         dialog.setResultConverter(dialogButton -> {
             if (dialogButton == addButton) {
@@ -572,7 +1062,7 @@ public class TeacherDashboardController {
                 String scoreText = scoreField.getText().trim();
 
                 if (question.isEmpty() || optionA.isEmpty() || optionB.isEmpty() ||
-                    optionC.isEmpty() || optionD.isEmpty()) {
+                        optionC.isEmpty() || optionD.isEmpty()) {
                     showAlert(Alert.AlertType.ERROR, "Validation Error",
                             "All fields are required.");
                     return false;
@@ -592,8 +1082,7 @@ public class TeacherDashboardController {
                             question,
                             optionA, optionB, optionC, optionD,
                             correctOption.charAt(0),
-                            score
-                    );
+                            score);
 
                     if (success) {
                         questionsAdded[0]++;

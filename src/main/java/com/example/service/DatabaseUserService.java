@@ -1,9 +1,5 @@
 package com.example.service;
 
-import com.example.database.DatabaseManager;
-import com.example.database.InsertIntoDatabase;
-import com.example.model.User;
-
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -11,6 +7,10 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+
+import com.example.database.DatabaseManager;
+import com.example.database.InsertIntoDatabase;
+import com.example.model.User;
 
 /**
  * Real implementation of UserService using SQLite database.
@@ -156,9 +156,27 @@ public class DatabaseUserService implements UserService {
 
     @Override
     public boolean deleteUser(int id) {
-        String sql = "DELETE FROM people WHERE id=" + id;
-
+        // Only remove enrollments for students. Do not delete groups when a teacher is removed —
+        // group reassignment should be handled by the admin UI before deleting a teacher.
         try (Statement stmt = conn.createStatement()) {
+            // Determine the role of the user (if exists)
+            String roleQuery = "SELECT role FROM people WHERE id=" + id;
+            ResultSet rs = stmt.executeQuery(roleQuery);
+            String role = null;
+            if (rs.next()) {
+                role = rs.getString("role");
+            }
+
+            // If student: remove enrollments
+            if (role != null && role.equalsIgnoreCase("student")) {
+                String deleteEnrollments = "DELETE FROM enrollment WHERE student_id=" + id;
+                stmt.executeUpdate(deleteEnrollments);
+            }
+
+            // Do NOT delete groups for teachers here. Admin must reassign groups first.
+
+            // Finally delete the user record
+            String sql = "DELETE FROM people WHERE id=" + id;
             int rowsAffected = stmt.executeUpdate(sql);
             return rowsAffected > 0;
         } catch (SQLException e) {

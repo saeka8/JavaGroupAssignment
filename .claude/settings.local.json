@@ -1,11 +1,9 @@
 {
   "permissions": {
     "allow": [
-      "Bash(mvn clean compile:*)",
-      "Bash(mvn javafx:run:*)",
-      "Bash(sqlite3:*)",
-      "Bash(mvn compile exec:java:*)",
-      "Bash(if exist \"group5Quiz.db\" del \"group5Quiz.db\")"
+      "Bash(javac:*)",
+      "Bash(java:*)",
+      "Bash(mvn exec:java:*)"
     ],
     "deny": [],
     "ask": []

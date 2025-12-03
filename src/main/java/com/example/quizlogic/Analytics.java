@@ -55,4 +55,20 @@ public class Analytics {
 
         return accuracy;
     }
+
+    public static Map<Integer, List<QuizAttempt>> groupAttemptsByQuiz(List<QuizAttempt> attempts) {
+        return attempts.stream()
+                .collect(Collectors.groupingBy(QuizAttempt::getQuizId));
+    }
+
+    /**
+     * Convert raw scores to percentages based on total questions
+     */
+    public static List<Double> convertToPercentages(List<Integer> scores, int totalQuestions) {
+        if (totalQuestions == 0) return Collections.emptyList();
+        
+        return scores.stream()
+                .map(score -> (score * 100.0) / totalQuestions)
+                .collect(Collectors.toList());
+    }
 }

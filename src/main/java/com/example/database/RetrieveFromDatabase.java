@@ -1,6 +1,7 @@
 package com.example.database;
 
 import com.example.model.User;
+import com.example.quizlogic.QuizAttempt;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -8,6 +9,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.HashMap;
 import java.util.Map;
+import java.time.LocalDate;
 
 import static com.example.model.User.Role.*;
 
@@ -154,6 +156,48 @@ public class RetrieveFromDatabase {
         throw new SQLException("Question not found with id: " + questionId);
     }
 
+    // Get student's scores lists by QuizId
+    public static Map<Integer, QuizAttempt> getScores(Connection conn, int quizId, int studentId) throws SQLException {
+        String sql = "SELECT attempt, score FROM scores WHERE quiz_id = " + quizId + " AND student_id = " + studentId;
+        Map<Integer, QuizAttempt> studentScores = new HashMap<>();
+        try (Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+            while (rs.next()) {
+                int attempt = rs.getInt("attempt");
+                int score = rs.getInt("score");
+
+                // Use attempt number as key
+                QuizAttempt qa = new QuizAttempt(quizId, studentId, attempt, score);
+                // Try to retrieve the date for this attempt from mcqStudentAnswer
+                String dateSql = "SELECT MAX(sa.date) as date FROM mcqStudentAnswer sa " +
+                                 "INNER JOIN quizQuestion qq ON sa.question_id = qq.question_id " +
+                                 "WHERE qq.quiz_id=" + quizId + " AND sa.student_id=" + studentId + " AND sa.attempt=" + attempt;
+                try (Statement stmt2 = conn.createStatement();
+                     ResultSet rs2 = stmt2.executeQuery(dateSql)) {
+                    if (rs2.next()) {
+                        String dateStr = rs2.getString("date");
+                        if (dateStr != null && !dateStr.isEmpty()) {
+                            try {
+                                LocalDate d = LocalDate.parse(dateStr);
+                                qa.setAttemptedAt(d.atStartOfDay());
+                            } catch (Exception ex) {
+                                // ignore parsing errors and keep default
+                            }
+                        }
+                    }
+                } catch (SQLException ex) {
+                    // ignore and keep default attemptedAt
+                }
+                studentScores.put(attempt, qa);
+            }
+        }
+        if (studentScores.isEmpty()) {
+            throw new SQLException("No quiz attempts found for quiz_id: " + quizId + " and student_id: " + studentId);
+        }
+        return studentScores;
+    }
+
+    
     // Retrieve user ID by email
     public static int getUserIdByEmail(Connection conn, String email) throws SQLException {
         String sql = "SELECT id FROM people WHERE email='" + email + "'";

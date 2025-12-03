@@ -97,11 +97,11 @@
 
                 <!-- Tabs -->
                 <TabPane tabClosingPolicy="UNAVAILABLE" style="-fx-background-color: white;" VBox.vgrow="ALWAYS">
-                    
+
                     <!-- My Quizzes Tab -->
                     <Tab text="  My Quizzes  ">
                         <VBox spacing="15" style="-fx-background-color: white; -fx-padding: 20;">
-                            
+
                             <!-- Action Bar -->
                             <HBox spacing="15" alignment="CENTER_LEFT">
                                 <TextField fx:id="quizSearchField" promptText="🔍 Search quizzes..." prefWidth="280" prefHeight="38"
@@ -112,8 +112,11 @@
                                 <Button text="↻ Refresh" onAction="#handleRefresh"
                                         style="-fx-background-color: transparent; -fx-text-fill: #6c757d; -fx-border-color: #dee2e6; -fx-border-radius: 5; -fx-background-radius: 5; -fx-padding: 8 14; -fx-cursor: hand;"/>
 
-                                <Button text="❓ Add Questions" onAction="#handleAddQuestions"
+                                <Button text="❓ Manage Questions" onAction="#handleManageQuestions"
                                         style="-fx-background-color: #ffc107; -fx-text-fill: white; -fx-padding: 8 14; -fx-background-radius: 5; -fx-cursor: hand;"/>
+
+                                <Button text="✏ Edit" onAction="#handleEditQuiz"
+                                        style="-fx-background-color: #17a2b8; -fx-text-fill: white; -fx-padding: 8 14; -fx-background-radius: 5; -fx-cursor: hand;"/>
 
                                 <Button text="🗑 Delete" onAction="#handleDeleteQuiz"
                                         style="-fx-background-color: #dc3545; -fx-text-fill: white; -fx-padding: 8 14; -fx-background-radius: 5; -fx-cursor: hand;"/>
@@ -137,7 +140,34 @@
                                 </placeholder>
                             </TableView>
 
-                            <Label text="💡 Select a quiz to assign it to students or view detailed results" 
+                            <Label text="💡 Select a quiz to assign it to students or view detailed results"
+                                   style="-fx-font-size: 12px; -fx-text-fill: #6c757d;"/>
+                        </VBox>
+                    </Tab>
+
+                    <!-- Student List Tab -->
+                    <Tab text="  Student List  ">
+                        <VBox spacing="15" style="-fx-background-color: white; -fx-padding: 20;">
+
+                            <Label text="Students in Selected Group" style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #2c3e50;"/>
+
+                            <Separator/>
+
+                            <!-- Students Table -->
+                            <TableView fx:id="studentsTable" prefHeight="320" VBox.vgrow="ALWAYS"
+                                       style="-fx-background-color: white; -fx-border-color: #dee2e6; -fx-border-radius: 5;">
+                                <columns>
+                                    <TableColumn fx:id="studentNameColumn" text="Name" prefWidth="200"/>
+                                    <TableColumn fx:id="studentEmailColumn" text="Email" prefWidth="250"/>
+                                    <TableColumn fx:id="studentGroupAvgColumn" text="Group Average" prefWidth="140"/>
+                                </columns>
+                                <placeholder>
+                                    <Label text="Select a group above to view its students."
+                                           style="-fx-text-fill: #6c757d;"/>
+                                </placeholder>
+                            </TableView>
+
+                            <Label text="💡 Select a group from the 'My Groups' section to see enrolled students"
                                    style="-fx-font-size: 12px; -fx-text-fill: #6c757d;"/>
                         </VBox>
                     </Tab>
@@ -145,22 +175,25 @@
                     <!-- Student Results Tab -->
                     <Tab text="  Student Results  ">
                         <VBox spacing="15" style="-fx-background-color: white; -fx-padding: 20;">
-                            
-                            <Label text="Recent Quiz Attempts" style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #2c3e50;"/>
-                            
+
+                            <Label text="Quiz Attempts" style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #2c3e50;"/>
+
+                            <Label fx:id="resultsFilterLabel" text="💡 Select a quiz from 'My Quizzes' tab and a student from 'Student List' tab to view their attempts"
+                                   style="-fx-font-size: 12px; -fx-text-fill: #6c757d; -fx-padding: 5 0;"/>
+
                             <Separator/>
 
                             <!-- Results Table -->
                             <TableView fx:id="resultsTable" prefHeight="320" VBox.vgrow="ALWAYS"
                                        style="-fx-background-color: white; -fx-border-color: #dee2e6; -fx-border-radius: 5;">
                                 <columns>
-                                    <TableColumn fx:id="resultStudentColumn" text="Student" prefWidth="180"/>
-                                    <TableColumn fx:id="resultQuizColumn" text="Quiz" prefWidth="200"/>
-                                    <TableColumn fx:id="resultScoreColumn" text="Score" prefWidth="100"/>
-                                    <TableColumn fx:id="resultDateColumn" text="Date" prefWidth="160"/>
+                                    <TableColumn fx:id="resultAttemptColumn" text="Attempt #" prefWidth="100"/>
+                                    <TableColumn fx:id="resultScoreColumn" text="Score" prefWidth="150"/>
+                                    <TableColumn fx:id="resultPercentageColumn" text="Percentage" prefWidth="150"/>
+                                    <TableColumn fx:id="resultDateColumn" text="Date" prefWidth="200"/>
                                 </columns>
                                 <placeholder>
-                                    <Label text="No quiz attempts yet. Assign quizzes to students to see results here." 
+                                    <Label text="Select a quiz and a student to view their attempts."
                                            style="-fx-text-fill: #6c757d;"/>
                                 </placeholder>
                             </TableView>

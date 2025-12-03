@@ -1,11 +1,5 @@
 package com.example.service;
 
-import com.example.database.DatabaseManager;
-import com.example.database.InsertIntoDatabase;
-import com.example.model.Quiz;
-import com.example.model.User;
-import com.example.quizlogic.Question;
-
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -13,6 +7,12 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+
+import com.example.database.DatabaseManager;
+import com.example.database.InsertIntoDatabase;
+import com.example.model.Quiz;
+import com.example.model.User;
+import com.example.quizlogic.Question;
 
 /**
  * Real implementation of QuizService using SQLite database.
@@ -33,9 +33,8 @@ public class DatabaseQuizService implements QuizService {
     @Override
     public Quiz createQuiz(Quiz quiz) {
         try {
-            // Note: Your DB schema uses 'groups' but we'll use teacherId for now
-            // You'll need to handle group assignment separately
-            int quizId = InsertIntoDatabase.insertQuiz(conn, quiz.getTitle(), quiz.getDescription(), quiz.getTeacherId());
+            // Insert quiz using the group id set on the Quiz object (teacher is derived from the group)
+            int quizId = InsertIntoDatabase.insertQuiz(conn, quiz.getTitle(), quiz.getDescription(), quiz.getGroupId());
             quiz.setId(quizId);
             return quiz;
         } catch (SQLException e) {
@@ -397,9 +396,12 @@ public class DatabaseQuizService implements QuizService {
         int id = rs.getInt("id");
         String title = rs.getString("quiz_name");
         String description = rs.getString("description");
+        int groupId = rs.getInt("group_id");
         int teacherId = rs.getInt("teacher_id");
 
         Quiz quiz = new Quiz(id, title, description, teacherId);
+        // Ensure the quiz object knows which group it belongs to
+        quiz.setGroupId(groupId);
 
         // Get teacher name if available
         Optional<User> teacher = userService.getUserById(teacherId);
