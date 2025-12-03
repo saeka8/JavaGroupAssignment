@@ -1,9 +1,6 @@
 # Java Group Assignment
-## Study Platform
-Group Members:
-- Nathaniel Ayoub
-- Sofiia Avetisian
-- Simonida Jekic
-- Silvia Lopez Roldan
-- Saeka Ono
+## Quiz Platform
+To run the application from source paste the following: mvn clean javafx:run
 
+Username for the admin: admin@quiz.com
+Password for the admin: admin123
