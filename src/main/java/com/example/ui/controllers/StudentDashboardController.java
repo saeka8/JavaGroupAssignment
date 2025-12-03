@@ -28,6 +28,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.fxml.FXML;
+import javafx.scene.chart.CategoryAxis;
 import javafx.scene.chart.LineChart;
 import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.XYChart;
@@ -81,6 +82,7 @@ public class StudentDashboardController {
     @FXML private Label quizChartMessageLabel;
     @FXML private LineChart<String, Number> quizSpecificChart;
     @FXML private NumberAxis quizYAxis;
+    @FXML private CategoryAxis quizXAxis;
 
     // Services
     private final QuizService quizService = ServiceLocator.getQuizService();
@@ -302,6 +304,13 @@ public class StudentDashboardController {
         quizYAxis.setLowerBound(0);
         quizYAxis.setUpperBound(100);
         quizYAxis.setTickUnit(10);
+
+        // Configure X-axis to prevent label overlap
+        if (quizXAxis != null) {
+            quizXAxis.setAutoRanging(true);
+            quizXAxis.setGapStartAndEnd(true);
+            quizXAxis.setTickLabelRotation(0);
+        }
 
         quizSpecificChart.setLegendVisible(false);
         quizSpecificChart.setCreateSymbols(true);

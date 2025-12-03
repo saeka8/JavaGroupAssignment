@@ -3,7 +3,13 @@
     "allow": [
       "Bash(javac:*)",
       "Bash(java:*)",
-      "Bash(mvn exec:java:*)"
+      "Bash(mvn exec:java:*)",
+      "Bash(sqlite3:*)",
+      "Bash(find:*)",
+      "Bash(dir /s /b *.pdf)",
+      "Bash(mvn clean:*)",
+      "Bash(mvn javafx:run:*)",
+      "Bash(timeout:*)"
     ],
     "deny": [],
     "ask": []

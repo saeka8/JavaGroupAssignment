@@ -167,7 +167,8 @@
                     <LineChart fx:id="quizSpecificChart" prefHeight="300" legendVisible="false"
                                style="-fx-background-color: white;">
                         <xAxis>
-                            <CategoryAxis label="Attempt Number" side="BOTTOM" fx:id="quizXAxis"/>
+                            <CategoryAxis label="Attempt Number" side="BOTTOM" fx:id="quizXAxis"
+                                         tickLabelRotation="0" tickLabelGap="5"/>
                         </xAxis>
                         <yAxis>
                             <NumberAxis label="Score (%)" side="LEFT" fx:id="quizYAxis" 
