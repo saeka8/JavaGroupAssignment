@@ -112,8 +112,11 @@
                                 <Button text="↻ Refresh" onAction="#handleRefresh"
                                         style="-fx-background-color: transparent; -fx-text-fill: #6c757d; -fx-border-color: #dee2e6; -fx-border-radius: 5; -fx-background-radius: 5; -fx-padding: 8 14; -fx-cursor: hand;"/>
 
-                                <Button text="❓ Add Questions" onAction="#handleAddQuestions"
+                                <Button text="❓ Manage Questions" onAction="#handleManageQuestions"
                                         style="-fx-background-color: #ffc107; -fx-text-fill: white; -fx-padding: 8 14; -fx-background-radius: 5; -fx-cursor: hand;"/>
+
+                                <Button text="✏ Edit" onAction="#handleEditQuiz"
+                                        style="-fx-background-color: #17a2b8; -fx-text-fill: white; -fx-padding: 8 14; -fx-background-radius: 5; -fx-cursor: hand;"/>
 
                                 <Button text="🗑 Delete" onAction="#handleDeleteQuiz"
                                         style="-fx-background-color: #dc3545; -fx-text-fill: white; -fx-padding: 8 14; -fx-background-radius: 5; -fx-cursor: hand;"/>
