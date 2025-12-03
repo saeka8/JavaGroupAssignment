@@ -1,4 +1,4 @@
-package com.example;
+package com.example.ui.controllers;
 
 import com.example.model.User;
 import com.example.service.AuthService;
