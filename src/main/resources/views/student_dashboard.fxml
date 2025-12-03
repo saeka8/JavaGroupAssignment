@@ -10,6 +10,7 @@
 <?import javafx.scene.control.TableColumn?>
 <?import javafx.scene.control.TableView?>
 <?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Region?>
@@ -33,6 +34,7 @@
             <VBox alignment="CENTER_RIGHT" spacing="2">
                 <Label fx:id="welcomeLabel" text="Welcome back!" style="-fx-font-size: 14px; -fx-text-fill: white; -fx-font-weight: bold;"/>
                 <Label fx:id="userEmailLabel" text="student@quiz.com" style="-fx-font-size: 11px; -fx-text-fill: #adb5bd;"/>
+                <Label fx:id="groupsLabel" text="Groups: -" style="-fx-font-size: 11px; -fx-text-fill: #adb5bd;"/>
             </VBox>
             
             <Button text="Logout" onAction="#handleLogout" 
@@ -89,6 +91,8 @@
                             <HBox spacing="15" alignment="CENTER_LEFT">
                                 <TextField fx:id="quizSearchField" promptText="🔍 Search quizzes..." prefWidth="300" prefHeight="38"
                                            style="-fx-background-radius: 5; -fx-border-radius: 5; -fx-border-color: #dee2e6;"/>
+                                <ComboBox fx:id="studentGroupCombo" promptText="Filter by Group" prefWidth="200" prefHeight="38"
+                                          style="-fx-background-radius: 5; -fx-border-radius: 5;"/>
                                 
                                 <Region HBox.hgrow="ALWAYS"/>
                                 

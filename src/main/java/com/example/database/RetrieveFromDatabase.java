@@ -9,6 +9,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.HashMap;
 import java.util.Map;
+import java.time.LocalDate;
 
 import static com.example.model.User.Role.*;
 
@@ -166,7 +167,28 @@ public class RetrieveFromDatabase {
                 int score = rs.getInt("score");
 
                 // Use attempt number as key
-                studentScores.put(attempt, new QuizAttempt(quizId, studentId, attempt, score));
+                QuizAttempt qa = new QuizAttempt(quizId, studentId, attempt, score);
+                // Try to retrieve the date for this attempt from mcqStudentAnswer
+                String dateSql = "SELECT MAX(sa.date) as date FROM mcqStudentAnswer sa " +
+                                 "INNER JOIN quizQuestion qq ON sa.question_id = qq.question_id " +
+                                 "WHERE qq.quiz_id=" + quizId + " AND sa.student_id=" + studentId + " AND sa.attempt=" + attempt;
+                try (Statement stmt2 = conn.createStatement();
+                     ResultSet rs2 = stmt2.executeQuery(dateSql)) {
+                    if (rs2.next()) {
+                        String dateStr = rs2.getString("date");
+                        if (dateStr != null && !dateStr.isEmpty()) {
+                            try {
+                                LocalDate d = LocalDate.parse(dateStr);
+                                qa.setAttemptedAt(d.atStartOfDay());
+                            } catch (Exception ex) {
+                                // ignore parsing errors and keep default
+                            }
+                        }
+                    }
+                } catch (SQLException ex) {
+                    // ignore and keep default attemptedAt
+                }
+                studentScores.put(attempt, qa);
             }
         }
         if (studentScores.isEmpty()) {

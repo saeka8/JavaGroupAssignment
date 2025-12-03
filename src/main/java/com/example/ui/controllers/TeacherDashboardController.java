@@ -1,9 +1,15 @@
 package com.example.ui.controllers;
 
+import java.time.format.DateTimeFormatter;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
 import com.example.model.Group;
 import com.example.model.Quiz;
 import com.example.model.User;
 import com.example.quizlogic.QuizAttempt;
+import com.example.quizlogic.Question;
 import com.example.service.AttemptService;
 import com.example.service.GroupService;
 import com.example.service.QuizService;
@@ -11,6 +17,7 @@ import com.example.service.ServiceLocator;
 import com.example.service.UserService;
 import com.example.ui.util.SceneManager;
 import com.example.ui.util.SessionManager;
+
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
@@ -18,16 +25,25 @@ import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
-import javafx.scene.control.*;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Button;
+import javafx.scene.control.ButtonBar;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.CheckBox;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.Dialog;
+import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
+import javafx.scene.control.Separator;
+import javafx.scene.control.TableCell;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
+import javafx.scene.control.TextArea;
+import javafx.scene.control.TextField;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
-
-import java.time.format.DateTimeFormatter;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 /**
  * Controller for the Teacher Dashboard.
@@ -36,36 +52,58 @@ import java.util.stream.Collectors;
 public class TeacherDashboardController {
 
     // Header
-    @FXML private Label welcomeLabel;
-    @FXML private Label userEmailLabel;
+    @FXML
+    private Label welcomeLabel;
+    @FXML
+    private Label userEmailLabel;
 
     // Stats
-    @FXML private Label myQuizzesCount;
-    @FXML private Label totalAttemptsCount;
-    @FXML private Label averageScoreLabel;
+    @FXML
+    private Label myQuizzesCount;
+    @FXML
+    private Label totalAttemptsCount;
+    @FXML
+    private Label averageScoreLabel;
 
     // Groups Table
-    @FXML private TableView<Group> groupsTable;
-    @FXML private TableColumn<Group, String> groupNameColumn;
-    @FXML private TableColumn<Group, Integer> groupStudentsColumn;
-    @FXML private TableColumn<Group, Integer> groupQuizzesColumn;
-    @FXML private Label selectedGroupLabel;
+    @FXML
+    private TableView<Group> groupsTable;
+    @FXML
+    private TableColumn<Group, String> groupNameColumn;
+    @FXML
+    private TableColumn<Group, Integer> groupStudentsColumn;
+    @FXML
+    private TableColumn<Group, Integer> groupQuizzesColumn;
+    @FXML
+    private Label selectedGroupLabel;
 
     // My Quizzes Table
-    @FXML private TableView<Quiz> quizzesTable;
-    @FXML private TableColumn<Quiz, String> quizTitleColumn;
-    @FXML private TableColumn<Quiz, String> quizDescriptionColumn;
-    @FXML private TableColumn<Quiz, String> quizQuestionsColumn;
-    @FXML private TableColumn<Quiz, String> quizAttemptsColumn;
-    @FXML private TableColumn<Quiz, String> quizAvgScoreColumn;
-    @FXML private TextField quizSearchField;
+    @FXML
+    private TableView<Quiz> quizzesTable;
+    @FXML
+    private TableColumn<Quiz, String> quizTitleColumn;
+    @FXML
+    private TableColumn<Quiz, String> quizDescriptionColumn;
+    @FXML
+    private TableColumn<Quiz, String> quizQuestionsColumn;
+    @FXML
+    private TableColumn<Quiz, String> quizAttemptsColumn;
+    @FXML
+    private TableColumn<Quiz, String> quizAvgScoreColumn;
+    @FXML
+    private TextField quizSearchField;
 
     // Results Table
-    @FXML private TableView<QuizAttempt> resultsTable;
-    @FXML private TableColumn<QuizAttempt, String> resultStudentColumn;
-    @FXML private TableColumn<QuizAttempt, String> resultQuizColumn;
-    @FXML private TableColumn<QuizAttempt, String> resultScoreColumn;
-    @FXML private TableColumn<QuizAttempt, String> resultDateColumn;
+    @FXML
+    private TableView<QuizAttempt> resultsTable;
+    @FXML
+    private TableColumn<QuizAttempt, String> resultStudentColumn;
+    @FXML
+    private TableColumn<QuizAttempt, String> resultQuizColumn;
+    @FXML
+    private TableColumn<QuizAttempt, String> resultScoreColumn;
+    @FXML
+    private TableColumn<QuizAttempt, String> resultDateColumn;
 
     // Services
     private final QuizService quizService = ServiceLocator.getQuizService();
@@ -116,7 +154,8 @@ public class TeacherDashboardController {
         groupsTable.getSelectionModel().selectedItemProperty().addListener((obs, oldSelection, newSelection) -> {
             if (newSelection != null) {
                 selectedGroup = newSelection;
-                selectedGroupLabel.setText("📚 Selected: " + newSelection.getName() + " - Manage quizzes for this group below");
+                selectedGroupLabel
+                        .setText("📚 Selected: " + newSelection.getName() + " - Manage quizzes for this group below");
                 loadQuizzesForSelectedGroup();
                 updateStatsForGroup();
             } else {
@@ -146,12 +185,20 @@ public class TeacherDashboardController {
         });
 
         quizAvgScoreColumn.setCellValueFactory(cellData -> {
-            int quizId = cellData.getValue().getId();
-            double avg = attemptService.getAverageScoreForQuiz(quizId);
-            if (avg == 0 && attemptService.getAttemptsByQuiz(quizId).isEmpty()) {
+            Quiz quiz = cellData.getValue();
+            double avg = attemptService.getAverageScoreForQuiz(quiz.getId());
+
+            // Calculate total possible score
+            int totalScore = quiz.getQuestions().stream()
+                    .mapToInt(Question::getAssignedScore)
+                    .sum();
+
+            if (totalScore == 0 && attemptService.getAttemptsByQuiz(quiz.getId()).isEmpty()) {
                 return new SimpleStringProperty("N/A");
             }
-            return new SimpleStringProperty(String.format("%.1f%%", avg));
+
+            // Format as "Avg / Total" e.g. "2.0 / 3"
+            return new SimpleStringProperty(String.format("%.1f / %d", avg, totalScore));
         });
 
         // Color code average scores
@@ -164,17 +211,34 @@ public class TeacherDashboardController {
                     setStyle("");
                 } else {
                     setText(item);
-                    if (!item.equals("N/A")) {
-                        int score = Integer.parseInt(item.replace("%", ""));
-                        if (score >= 80) {
-                            setStyle("-fx-text-fill: #28a745; -fx-font-weight: bold;");
-                        } else if (score >= 60) {
-                            setStyle("-fx-text-fill: #ffc107; -fx-font-weight: bold;");
-                        } else {
-                            setStyle("-fx-text-fill: #dc3545; -fx-font-weight: bold;");
-                        }
-                    } else {
+                    if (item.equals("N/A")) {
                         setStyle("-fx-text-fill: #6c757d;");
+                    } else {
+                        try {
+                            // Parse "2.0 / 3" to calculate percentage for color
+                            String[] parts = item.split(" / ");
+                            if (parts.length == 2) {
+                                double score = Double.parseDouble(parts[0].replace(",", ".")); // Handle locale
+                                int total = Integer.parseInt(parts[1]);
+
+                                if (total > 0) {
+                                    double percentage = (score / total) * 100;
+                                    if (percentage >= 80) {
+                                        setStyle("-fx-text-fill: #28a745; -fx-font-weight: bold;");
+                                    } else if (percentage >= 60) {
+                                        setStyle("-fx-text-fill: #ffc107; -fx-font-weight: bold;");
+                                    } else {
+                                        setStyle("-fx-text-fill: #dc3545; -fx-font-weight: bold;");
+                                    }
+                                } else {
+                                    setStyle("-fx-text-fill: #6c757d;");
+                                }
+                            } else {
+                                setStyle("-fx-text-fill: #6c757d;");
+                            }
+                        } catch (Exception e) {
+                            setStyle("-fx-text-fill: #6c757d;");
+                        }
                     }
                 }
             }
@@ -200,7 +264,7 @@ public class TeacherDashboardController {
 
         resultScoreColumn.setCellValueFactory(cellData -> {
             int score = cellData.getValue().getTotalScore();
-            return new SimpleStringProperty(String.format("%.1f%%", score));
+            return new SimpleStringProperty(String.format("%d%%", score));
         });
 
         resultScoreColumn.setCellFactory(column -> new TableCell<>() {
@@ -239,13 +303,14 @@ public class TeacherDashboardController {
                 }
                 String lowerFilter = newVal.toLowerCase();
                 return quiz.getTitle().toLowerCase().contains(lowerFilter) ||
-                       quiz.getDescription().toLowerCase().contains(lowerFilter);
+                        quiz.getDescription().toLowerCase().contains(lowerFilter);
             });
         });
     }
 
     private void loadData() {
-        if (currentUser == null) return;
+        if (currentUser == null)
+            return;
 
         // Load teacher's groups
         List<Group> groups = groupService.getGroupsByTeacher(currentUser.getId());
@@ -256,7 +321,8 @@ public class TeacherDashboardController {
     }
 
     private void loadQuizzesForSelectedGroup() {
-        if (selectedGroup == null) return;
+        if (selectedGroup == null)
+            return;
 
         // Load quizzes for the selected group
         List<Quiz> quizzes = quizService.getQuizzesByGroup(selectedGroup.getId());
@@ -273,7 +339,8 @@ public class TeacherDashboardController {
     }
 
     private void updateStatsForGroup() {
-        if (selectedGroup == null) return;
+        if (selectedGroup == null)
+            return;
 
         List<Quiz> quizzes = quizService.getQuizzesByGroup(selectedGroup.getId());
         List<QuizAttempt> attempts = quizzes.stream()
@@ -357,7 +424,7 @@ public class TeacherDashboardController {
                     quiz.setTitle(title);
                     quiz.setDescription(descField.getText().trim());
                     quiz.setTeacherId(currentUser.getId());
-                    quiz.setGroupId(selectedGroup.getId());  // Set the group ID
+                    quiz.setGroupId(selectedGroup.getId()); // Set the group ID
                     quiz.setTeacherName(currentUser.getFullName());
                     return quizService.createQuiz(quiz);
                 }
@@ -369,7 +436,7 @@ public class TeacherDashboardController {
         result.ifPresent(quiz -> {
             showAlert(Alert.AlertType.INFORMATION, "Quiz Created",
                     "Quiz '" + quiz.getTitle() + "' created successfully!\n\n" +
-                    "Use the '❓ Add Questions' button to add questions to this quiz.");
+                            "Use the '❓ Add Questions' button to add questions to this quiz.");
             // Refresh groups table to update quiz counts
             groupsTable.refresh();
             loadQuizzesForSelectedGroup();
@@ -381,7 +448,7 @@ public class TeacherDashboardController {
     private void handleAssignQuiz() {
         Quiz selectedQuiz = quizzesTable.getSelectionModel().getSelectedItem();
         if (selectedQuiz == null) {
-            showAlert(Alert.AlertType.WARNING, "No Quiz Selected", 
+            showAlert(Alert.AlertType.WARNING, "No Quiz Selected",
                     "Please select a quiz from the table to assign.");
             return;
         }
@@ -389,7 +456,7 @@ public class TeacherDashboardController {
         // Get all students
         List<User> students = userService.getUsersByRole(User.Role.STUDENT);
         if (students.isEmpty()) {
-            showAlert(Alert.AlertType.INFORMATION, "No Students", 
+            showAlert(Alert.AlertType.INFORMATION, "No Students",
                     "There are no students registered in the system.");
             return;
         }
@@ -452,7 +519,7 @@ public class TeacherDashboardController {
             List<Integer> studentIds = selectedStudents.stream()
                     .map(User::getId)
                     .collect(Collectors.toList());
-            
+
             if (!studentIds.isEmpty()) {
                 quizService.assignQuizToStudents(selectedQuiz.getId(), studentIds);
                 showAlert(Alert.AlertType.INFORMATION, "Quiz Assigned",
@@ -465,7 +532,7 @@ public class TeacherDashboardController {
     private void handleDeleteQuiz() {
         Quiz selectedQuiz = quizzesTable.getSelectionModel().getSelectedItem();
         if (selectedQuiz == null) {
-            showAlert(Alert.AlertType.WARNING, "No Quiz Selected", 
+            showAlert(Alert.AlertType.WARNING, "No Quiz Selected",
                     "Please select a quiz from the table to delete.");
             return;
         }
@@ -473,16 +540,268 @@ public class TeacherDashboardController {
         Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
         confirm.setTitle("Delete Quiz");
         confirm.setHeaderText("Are you sure you want to delete this quiz?");
-        confirm.setContentText("Quiz: " + selectedQuiz.getTitle() + 
+        confirm.setContentText("Quiz: " + selectedQuiz.getTitle() +
                 "\n\nThis action cannot be undone. All associated data will be lost.");
 
         Optional<ButtonType> result = confirm.showAndWait();
         if (result.isPresent() && result.get() == ButtonType.OK) {
             quizService.deleteQuiz(selectedQuiz.getId());
-            showAlert(Alert.AlertType.INFORMATION, "Quiz Deleted", 
+            showAlert(Alert.AlertType.INFORMATION, "Quiz Deleted",
                     "Quiz '" + selectedQuiz.getTitle() + "' has been deleted.");
             loadData();
         }
+    }
+
+    @FXML
+    private void handleEditQuiz() {
+        Quiz selectedQuiz = quizzesTable.getSelectionModel().getSelectedItem();
+        if (selectedQuiz == null) {
+            showAlert(Alert.AlertType.WARNING, "No Quiz Selected",
+                    "Please select a quiz from the table to edit.");
+            return;
+        }
+
+        Dialog<Quiz> dialog = new Dialog<>();
+        dialog.setTitle("Edit Quiz");
+        dialog.setHeaderText("Edit details for: " + selectedQuiz.getTitle());
+
+        ButtonType saveButton = new ButtonType("Save", ButtonBar.ButtonData.OK_DONE);
+        dialog.getDialogPane().getButtonTypes().addAll(saveButton, ButtonType.CANCEL);
+
+        GridPane grid = new GridPane();
+        grid.setHgap(10);
+        grid.setVgap(10);
+        grid.setPadding(new Insets(20, 150, 10, 10));
+
+        TextField titleField = new TextField(selectedQuiz.getTitle());
+        titleField.setPromptText("Quiz Title");
+        titleField.setPrefWidth(300);
+
+        TextArea descField = new TextArea(selectedQuiz.getDescription());
+        descField.setPromptText("Description");
+        descField.setPrefRowCount(3);
+        descField.setPrefWidth(300);
+
+        grid.add(new Label("Title:"), 0, 0);
+        grid.add(titleField, 1, 0);
+        grid.add(new Label("Description:"), 0, 1);
+        grid.add(descField, 1, 1);
+
+        dialog.getDialogPane().setContent(grid);
+
+        dialog.setResultConverter(dialogButton -> {
+            if (dialogButton == saveButton) {
+                String title = titleField.getText().trim();
+                if (!title.isEmpty()) {
+                    selectedQuiz.setTitle(title);
+                    selectedQuiz.setDescription(descField.getText().trim());
+                    return selectedQuiz;
+                }
+            }
+            return null;
+        });
+
+        Optional<Quiz> result = dialog.showAndWait();
+        result.ifPresent(quiz -> {
+            if (quizService.updateQuiz(quiz)) {
+                showAlert(Alert.AlertType.INFORMATION, "Quiz Updated",
+                        "Quiz details updated successfully.");
+                quizzesTable.refresh();
+            } else {
+                showAlert(Alert.AlertType.ERROR, "Error", "Failed to update quiz.");
+            }
+        });
+    }
+
+    @FXML
+    private void handleManageQuestions() {
+        Quiz selectedQuiz = quizzesTable.getSelectionModel().getSelectedItem();
+        if (selectedQuiz == null) {
+            showAlert(Alert.AlertType.WARNING, "No Quiz Selected",
+                    "Please select a quiz from the table to manage questions.");
+            return;
+        }
+
+        // Create a custom dialog for managing questions
+        Dialog<Void> dialog = new Dialog<>();
+        dialog.setTitle("Manage Questions");
+        dialog.setHeaderText("Manage questions for: " + selectedQuiz.getTitle());
+
+        ButtonType closeButton = new ButtonType("Close", ButtonBar.ButtonData.CANCEL_CLOSE);
+        dialog.getDialogPane().getButtonTypes().add(closeButton);
+
+        // Layout
+        VBox content = new VBox(10);
+        content.setPadding(new Insets(10));
+        content.setPrefSize(600, 400);
+
+        // Table for questions
+        TableView<com.example.quizlogic.Question> questionsTable = new TableView<>();
+
+        TableColumn<com.example.quizlogic.Question, String> questionCol = new TableColumn<>("Question");
+        questionCol.setCellValueFactory(new PropertyValueFactory<>("text"));
+        questionCol.setPrefWidth(300);
+
+        TableColumn<com.example.quizlogic.Question, Integer> scoreCol = new TableColumn<>("Points");
+        scoreCol.setCellValueFactory(new PropertyValueFactory<>("assignedScore"));
+        scoreCol.setPrefWidth(50);
+
+        questionsTable.getColumns().addAll(questionCol, scoreCol);
+
+        // Load questions
+        List<com.example.quizlogic.Question> questions = quizService.getQuestionsByQuiz(selectedQuiz.getId());
+        ObservableList<com.example.quizlogic.Question> questionsList = FXCollections.observableArrayList(questions);
+        questionsTable.setItems(questionsList);
+
+        // Buttons
+        HBox actions = new HBox(10);
+        Button addBtn = new Button("Add New");
+        Button editBtn = new Button("Edit Selected");
+        Button deleteBtn = new Button("Delete Selected");
+
+        addBtn.setOnAction(e -> {
+            handleAddQuestionInternal(selectedQuiz, questionsList);
+        });
+
+        editBtn.setOnAction(e -> {
+            com.example.quizlogic.Question selectedQ = questionsTable.getSelectionModel().getSelectedItem();
+            if (selectedQ != null) {
+                handleEditQuestionInternal(selectedQ, questionsList);
+            } else {
+                showAlert(Alert.AlertType.WARNING, "No Selection", "Select a question to edit.");
+            }
+        });
+
+        deleteBtn.setOnAction(e -> {
+            com.example.quizlogic.Question selectedQ = questionsTable.getSelectionModel().getSelectedItem();
+            if (selectedQ != null) {
+                Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
+                confirm.setTitle("Delete Question");
+                confirm.setHeaderText("Delete this question?");
+                confirm.setContentText(selectedQ.getText());
+
+                if (confirm.showAndWait().orElse(ButtonType.CANCEL) == ButtonType.OK) {
+                    if (quizService.deleteQuestion(selectedQ.getId())) {
+                        questionsList.remove(selectedQ);
+                    } else {
+                        showAlert(Alert.AlertType.ERROR, "Error", "Failed to delete question.");
+                    }
+                }
+            } else {
+                showAlert(Alert.AlertType.WARNING, "No Selection", "Select a question to delete.");
+            }
+        });
+
+        actions.getChildren().addAll(addBtn, editBtn, deleteBtn);
+        content.getChildren().addAll(questionsTable, actions);
+
+        dialog.getDialogPane().setContent(content);
+        dialog.showAndWait();
+
+        // Refresh main table stats
+        loadQuizzesForSelectedGroup();
+    }
+
+    private void handleAddQuestionInternal(Quiz quiz, ObservableList<com.example.quizlogic.Question> list) {
+        // Reuse the logic from handleAddQuestions but adapted for this context
+        // ... (Simplified version of the dialog)
+        Dialog<com.example.quizlogic.Question> dialog = createQuestionDialog(null);
+        dialog.setTitle("Add Question");
+
+        dialog.showAndWait().ifPresent(q -> {
+            if (quizService.addQuestionToQuiz(quiz.getId(), q.getText(), q.getOptionA(), q.getOptionB(),
+                    q.getOptionC(), q.getOptionD(), q.getCorrectAnswer(), q.getAssignedScore())) {
+                // We need to reload to get the ID, or just reload the list
+                list.setAll(quizService.getQuestionsByQuiz(quiz.getId()));
+            }
+        });
+    }
+
+    private void handleEditQuestionInternal(com.example.quizlogic.Question q,
+            ObservableList<com.example.quizlogic.Question> list) {
+        Dialog<com.example.quizlogic.Question> dialog = createQuestionDialog(q);
+        dialog.setTitle("Edit Question");
+
+        dialog.showAndWait().ifPresent(updatedQ -> {
+            // Update the existing object with new values
+            q.setText(updatedQ.getText());
+            q.setOptionA(updatedQ.getOptionA());
+            q.setOptionB(updatedQ.getOptionB());
+            q.setOptionC(updatedQ.getOptionC());
+            q.setOptionD(updatedQ.getOptionD());
+            q.setCorrectAnswer(updatedQ.getCorrectAnswer());
+            q.setAssignedScore(updatedQ.getAssignedScore());
+
+            if (quizService.updateQuestion(q)) {
+                // Refresh list view
+                int index = list.indexOf(q);
+                list.set(index, q);
+            } else {
+                showAlert(Alert.AlertType.ERROR, "Error", "Failed to update question.");
+            }
+        });
+    }
+
+    private Dialog<com.example.quizlogic.Question> createQuestionDialog(com.example.quizlogic.Question existing) {
+        Dialog<com.example.quizlogic.Question> dialog = new Dialog<>();
+        ButtonType saveBtn = new ButtonType("Save", ButtonBar.ButtonData.OK_DONE);
+        dialog.getDialogPane().getButtonTypes().addAll(saveBtn, ButtonType.CANCEL);
+
+        GridPane grid = new GridPane();
+        grid.setHgap(10);
+        grid.setVgap(10);
+        grid.setPadding(new Insets(20, 150, 10, 10));
+
+        TextField questionField = new TextField(existing != null ? existing.getText() : "");
+        TextField optionAField = new TextField(existing != null ? existing.getOptionA() : "");
+        TextField optionBField = new TextField(existing != null ? existing.getOptionB() : "");
+        TextField optionCField = new TextField(existing != null ? existing.getOptionC() : "");
+        TextField optionDField = new TextField(existing != null ? existing.getOptionD() : "");
+
+        ComboBox<String> correctOptionCombo = new ComboBox<>();
+        correctOptionCombo.getItems().addAll("A", "B", "C", "D");
+        correctOptionCombo.setValue(existing != null ? String.valueOf(existing.getCorrectAnswer()) : "A");
+
+        TextField scoreField = new TextField(existing != null ? String.valueOf(existing.getAssignedScore()) : "1");
+
+        grid.add(new Label("Question:"), 0, 0);
+        grid.add(questionField, 1, 0);
+        grid.add(new Label("Option A:"), 0, 1);
+        grid.add(optionAField, 1, 1);
+        grid.add(new Label("Option B:"), 0, 2);
+        grid.add(optionBField, 1, 2);
+        grid.add(new Label("Option C:"), 0, 3);
+        grid.add(optionCField, 1, 3);
+        grid.add(new Label("Option D:"), 0, 4);
+        grid.add(optionDField, 1, 4);
+        grid.add(new Label("Correct:"), 0, 5);
+        grid.add(correctOptionCombo, 1, 5);
+        grid.add(new Label("Points:"), 0, 6);
+        grid.add(scoreField, 1, 6);
+
+        dialog.getDialogPane().setContent(grid);
+
+        dialog.setResultConverter(btn -> {
+            if (btn == saveBtn) {
+                try {
+                    int score = Integer.parseInt(scoreField.getText().trim());
+                    return new com.example.quizlogic.Question(
+                            0, // ID ignored for new, preserved for edit in caller
+                            questionField.getText().trim(),
+                            optionAField.getText().trim(),
+                            optionBField.getText().trim(),
+                            optionCField.getText().trim(),
+                            optionDField.getText().trim(),
+                            correctOptionCombo.getValue().charAt(0),
+                            score);
+                } catch (Exception e) {
+                    return null;
+                }
+            }
+            return null;
+        });
+
+        return dialog;
     }
 
     @FXML
@@ -559,7 +878,7 @@ public class TeacherDashboardController {
 
         dialog.getDialogPane().setContent(grid);
 
-        final int[] questionsAdded = {0};
+        final int[] questionsAdded = { 0 };
 
         dialog.setResultConverter(dialogButton -> {
             if (dialogButton == addButton) {
@@ -572,7 +891,7 @@ public class TeacherDashboardController {
                 String scoreText = scoreField.getText().trim();
 
                 if (question.isEmpty() || optionA.isEmpty() || optionB.isEmpty() ||
-                    optionC.isEmpty() || optionD.isEmpty()) {
+                        optionC.isEmpty() || optionD.isEmpty()) {
                     showAlert(Alert.AlertType.ERROR, "Validation Error",
                             "All fields are required.");
                     return false;
@@ -592,8 +911,7 @@ public class TeacherDashboardController {
                             question,
                             optionA, optionB, optionC, optionD,
                             correctOption.charAt(0),
-                            score
-                    );
+                            score);
 
                     if (success) {
                         questionsAdded[0]++;
