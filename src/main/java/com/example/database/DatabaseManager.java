@@ -42,6 +42,36 @@ public class DatabaseManager {
         createQuizQuestionTable(conn);
         createScoresTable(conn);
         createMcqStudentAnswerTable(conn);
+        
+        // Insert default admin user if database is new
+        insertDefaultUsers(conn);
+    }
+    
+    // Insert default users (admin, teacher, student) if they don't exist
+    private static void insertDefaultUsers(Connection conn) throws SQLException {
+        // Check if admin user already exists
+        String checkSql = "SELECT COUNT(*) FROM people WHERE email = ?";
+        try (PreparedStatement checkStmt = conn.prepareStatement(checkSql)) {
+            checkStmt.setString(1, "admin@quiz.com");
+            ResultSet rs = checkStmt.executeQuery();
+            if (rs.next() && rs.getInt(1) > 0) {
+                System.out.println("Default users already exist.");
+                return;
+            }
+        }
+        
+        // Insert default users
+        String insertSql = "INSERT INTO people (name, lastname, email, password, role) VALUES (?, ?, ?, ?, ?)";
+        try (PreparedStatement pstmt = conn.prepareStatement(insertSql)) {
+            // Admin user
+            pstmt.setString(1, "Admin");
+            pstmt.setString(2, "User");
+            pstmt.setString(3, "admin@quiz.com");
+            pstmt.setString(4, "admin123");
+            pstmt.setString(5, "admin");
+            pstmt.executeUpdate();
+            System.out.println("Default admin user created: admin@quiz.com / admin123");
+        }
     }
     // People table
     private static void createPeopleTable(Connection conn) throws SQLException {
