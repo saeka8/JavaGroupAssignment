@@ -248,7 +248,7 @@ public class StudentDashboardController {
         });
 
         historyDateColumn.setCellValueFactory(cellData -> {
-            DateTimeFormatter fmt = DateTimeFormatter.ofPattern("MMM dd, yyyy HH:mm");
+            DateTimeFormatter fmt = DateTimeFormatter.ofPattern("MMM dd, yyyy");
             return new SimpleStringProperty(cellData.getValue().getAttemptedAt().format(fmt));
         });
     }

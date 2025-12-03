@@ -445,7 +445,7 @@ public class TeacherDashboardController {
         });
 
         resultDateColumn.setCellValueFactory(cellData -> {
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MMM dd, yyyy HH:mm");
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MMM dd, yyyy");
             String date = cellData.getValue().getAttemptedAt().format(formatter);
             return new SimpleStringProperty(date);
         });
