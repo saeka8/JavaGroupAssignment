@@ -1,7 +1,7 @@
 package com.example;
 
 import com.example.database.DatabaseManager;
-import com.example.ui.util.SceneManager;
+import com.example.ui.dev.SceneManager;
 import javafx.application.Application;
 import javafx.stage.Stage;
 

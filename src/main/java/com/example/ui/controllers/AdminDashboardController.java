@@ -13,8 +13,8 @@ import com.example.service.GroupService;
 import com.example.service.QuizService;
 import com.example.service.ServiceLocator;
 import com.example.service.UserService;
-import com.example.ui.util.SceneManager;
-import com.example.ui.util.SessionManager;
+import com.example.ui.dev.SceneManager;
+import com.example.ui.dev.SessionManager;
 
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleStringProperty;
@@ -330,10 +330,10 @@ public class AdminDashboardController {
         TextField firstNameField = new TextField(selectedUser.getFirstName());
         TextField lastNameField = new TextField(selectedUser.getLastName());
         TextField emailField = new TextField(selectedUser.getEmail());
-        ComboBox<String> roleCombo = new ComboBox<>();
-        roleCombo.getItems().addAll("Student", "Teacher", "Admin");
-        roleCombo.setValue(selectedUser.getRole().toString().substring(0, 1) + 
-                          selectedUser.getRole().toString().substring(1).toLowerCase());
+
+        // Display role as read-only label
+        Label roleLabel = new Label(selectedUser.getRole().toString());
+        roleLabel.setStyle("-fx-font-weight: bold;");
 
         grid.add(new Label("First Name:"), 0, 0);
         grid.add(firstNameField, 1, 0);
@@ -342,7 +342,7 @@ public class AdminDashboardController {
         grid.add(new Label("Email:"), 0, 2);
         grid.add(emailField, 1, 2);
         grid.add(new Label("Role:"), 0, 3);
-        grid.add(roleCombo, 1, 3);
+        grid.add(roleLabel, 1, 3);
 
         dialog.getDialogPane().setContent(grid);
 
@@ -351,7 +351,6 @@ public class AdminDashboardController {
                 String firstName = firstNameField.getText().trim();
                 String lastName = lastNameField.getText().trim();
                 String email = emailField.getText().trim();
-                String roleStr = roleCombo.getValue();
 
                 if (firstName.isEmpty() || lastName.isEmpty() || email.isEmpty()) {
                     showAlert(Alert.AlertType.ERROR, "Validation Error", "All fields are required.");
@@ -366,16 +365,10 @@ public class AdminDashboardController {
                     }
                 }
 
-                User.Role role = switch (roleStr) {
-                    case "Admin" -> User.Role.ADMIN;
-                    case "Teacher" -> User.Role.TEACHER;
-                    default -> User.Role.STUDENT;
-                };
-
+                // Update user details (role remains unchanged)
                 selectedUser.setFirstName(firstName);
                 selectedUser.setLastName(lastName);
                 selectedUser.setEmail(email);
-                selectedUser.setRole(role);
 
                 if (userService.updateUser(selectedUser)) {
                     return selectedUser;

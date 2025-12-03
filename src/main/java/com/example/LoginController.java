@@ -3,8 +3,8 @@ package com.example;
 import com.example.model.User;
 import com.example.service.AuthService;
 import com.example.service.ServiceLocator;
-import com.example.ui.util.SceneManager;
-import com.example.ui.util.SessionManager;
+import com.example.ui.dev.SceneManager;
+import com.example.ui.dev.SessionManager;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
@@ -62,11 +62,6 @@ public class LoginController {
             showError("Invalid email or password.");
             passwordField.clear();
         }
-    }
-
-    @FXML
-    private void handleRegister() {
-        SceneManager.getInstance().switchScene(SceneManager.REGISTER, 400, 600);
     }
 
     private void showError(String message) {

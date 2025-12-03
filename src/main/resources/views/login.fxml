@@ -2,12 +2,9 @@
 
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
-<?import javafx.scene.control.Hyperlink?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.PasswordField?>
-<?import javafx.scene.control.Separator?>
 <?import javafx.scene.control.TextField?>
-<?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.VBox?>
 
@@ -57,32 +54,11 @@
             <Button text="Sign In" onAction="#handleLogin" prefHeight="42" maxWidth="Infinity"
                     style="-fx-background-color: #2B3A67; -fx-text-fill: white; -fx-font-size: 14px; -fx-font-weight: bold; -fx-background-radius: 5; -fx-cursor: hand;"/>
         </VBox>
-        
-        <!-- Separator -->
-        <HBox alignment="CENTER" spacing="10">
-            <Separator prefWidth="80"/>
-            <Label text="or" style="-fx-text-fill: #adb5bd; -fx-font-size: 12px;"/>
-            <Separator prefWidth="80"/>
-        </HBox>
-        
-        <!-- Register Link -->
-        <HBox alignment="CENTER" spacing="5">
-            <Label text="Don't have an account?" style="-fx-text-fill: #6c757d; -fx-font-size: 13px;"/>
-            <Hyperlink text="Sign up" onAction="#handleRegister" 
-                       style="-fx-text-fill: #2B3A67; -fx-font-size: 13px; -fx-font-weight: bold;"/>
-        </HBox>
-        
+
+        <!-- Info Message -->
+        <Label text="Contact your administrator to create an account"
+               style="-fx-text-fill: #6c757d; -fx-font-size: 11px; -fx-font-style: italic;"/>
+
     </VBox>
-    
-    <!-- Test Credentials Info -->
-    <VBox alignment="CENTER" spacing="3">
-        <padding>
-            <Insets top="20"/>
-        </padding>
-    <Label text="Test Credentials:" style="-fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: #6c757d;"/>
-    <Label text="Admin: admin@quiz.com / admin123" style="-fx-font-size: 10px; -fx-text-fill: #adb5bd;"/>
-    <Label text="Teacher 1: alice.teacher@quiz.com / teacher123" style="-fx-font-size: 10px; -fx-text-fill: #adb5bd;"/>
-    <Label text="Student 1: charlie.student@quiz.com / student123" style="-fx-font-size: 10px; -fx-text-fill: #adb5bd;"/>
-    </VBox>
-    
+
 </VBox>

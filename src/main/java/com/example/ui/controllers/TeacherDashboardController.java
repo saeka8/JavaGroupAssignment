@@ -16,8 +16,8 @@ import com.example.service.GroupService;
 import com.example.service.QuizService;
 import com.example.service.ServiceLocator;
 import com.example.service.UserService;
-import com.example.ui.util.SceneManager;
-import com.example.ui.util.SessionManager;
+import com.example.ui.dev.SceneManager;
+import com.example.ui.dev.SessionManager;
 
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleStringProperty;
@@ -489,33 +489,52 @@ public class TeacherDashboardController {
         myQuizzesCount.setText(String.valueOf(quizzes.size()));
         totalAttemptsCount.setText(String.valueOf(attempts.size()));
 
-        if (attempts.isEmpty() || quizzes.isEmpty()) {
+        // Calculate average of student averages (matching "Average" column in students table)
+        if (selectedGroup == null || quizzes.isEmpty()) {
             averageScoreLabel.setText("N/A");
         } else {
-            // Calculate average percentage across all attempts
-            List<Double> percentages = new ArrayList<>();
-
-            for (QuizAttempt attempt : attempts) {
-                Quiz quiz = quizService.getQuizById(attempt.getQuizId()).orElse(null);
-                if (quiz != null) {
-                    int totalScore = quiz.getQuestions().stream()
-                            .mapToInt(Question::getAssignedScore)
-                            .sum();
-                    if (totalScore > 0) {
-                        double percentage = (attempt.getTotalScore() * 100.0) / totalScore;
-                        percentages.add(percentage);
-                    }
-                }
-            }
-
-            if (percentages.isEmpty()) {
+            List<User> students = groupService.getStudentsInGroup(selectedGroup.getId());
+            if (students.isEmpty()) {
                 averageScoreLabel.setText("N/A");
             } else {
-                double avgPercentage = percentages.stream()
-                        .mapToDouble(Double::doubleValue)
-                        .average()
-                        .orElse(0.0);
-                averageScoreLabel.setText(String.format("%.1f%%", avgPercentage));
+                List<Double> studentAverages = new ArrayList<>();
+
+                // For each student, calculate their average across all group quizzes
+                for (User student : students) {
+                    List<Double> quizPercentages = new ArrayList<>();
+
+                    for (Quiz quiz : quizzes) {
+                        Optional<Integer> bestScore = attemptService.getBestScore(student.getId(), quiz.getId());
+                        if (bestScore.isPresent()) {
+                            int totalScore = quiz.getQuestions().stream()
+                                    .mapToInt(Question::getAssignedScore)
+                                    .sum();
+                            if (totalScore > 0) {
+                                double percentage = (bestScore.get() * 100.0) / totalScore;
+                                quizPercentages.add(percentage);
+                            }
+                        }
+                    }
+
+                    // Only include students who have completed at least one quiz
+                    if (!quizPercentages.isEmpty()) {
+                        double studentAvg = quizPercentages.stream()
+                                .mapToDouble(Double::doubleValue)
+                                .average()
+                                .orElse(0.0);
+                        studentAverages.add(studentAvg);
+                    }
+                }
+
+                if (studentAverages.isEmpty()) {
+                    averageScoreLabel.setText("N/A");
+                } else {
+                    double groupAverage = studentAverages.stream()
+                            .mapToDouble(Double::doubleValue)
+                            .average()
+                            .orElse(0.0);
+                    averageScoreLabel.setText(String.format("%.1f%%", groupAverage));
+                }
             }
         }
     }

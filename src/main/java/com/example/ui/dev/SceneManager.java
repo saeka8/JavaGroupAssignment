@@ -1,4 +1,4 @@
-package com.example.ui.util;
+package com.example.ui.dev;
 
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -22,7 +22,6 @@ public class SceneManager {
     
     // View constants
     public static final String LOGIN = "login";
-    public static final String REGISTER = "register";
     public static final String ADMIN_DASHBOARD = "admin_dashboard";
     public static final String TEACHER_DASHBOARD = "teacher_dashboard";
     public static final String STUDENT_DASHBOARD = "student_dashboard";
@@ -58,7 +57,6 @@ public class SceneManager {
      */
     private void initializeViewPaths() {
         viewPaths.put(LOGIN, "/views/login.fxml");
-        viewPaths.put(REGISTER, "/views/register.fxml");
         viewPaths.put(ADMIN_DASHBOARD, "/views/admin_dashboard.fxml");
         viewPaths.put(TEACHER_DASHBOARD, "/views/teacher_dashboard.fxml");
         viewPaths.put(STUDENT_DASHBOARD, "/views/student_dashboard.fxml");
@@ -160,7 +158,6 @@ public class SceneManager {
     private String getTitleForView(String viewName) {
         return switch (viewName) {
             case LOGIN -> "Quiz Platform - Login";
-            case REGISTER -> "Quiz Platform - Register";
             case ADMIN_DASHBOARD -> "Quiz Platform - Admin Dashboard";
             case TEACHER_DASHBOARD -> "Quiz Platform - Teacher Dashboard";
             case STUDENT_DASHBOARD -> "Quiz Platform - Student Dashboard";
