@@ -140,12 +140,25 @@ public class DatabaseUserService implements UserService {
 
     @Override
     public boolean updateUser(User user) {
-        String roleStr = user.getRole().toString().toLowerCase();
-        String sql = "UPDATE people SET name='" + user.getFirstName() + "', lastname='" + user.getLastName() +
-                     "', email='" + user.getEmail() + "', password='" + user.getPassword() +
-                     "', role='" + roleStr + "' WHERE id=" + user.getId();
-
+        // Protect admin user from being modified and ignore any role changes coming from UI
         try (Statement stmt = conn.createStatement()) {
+            // Check current role in DB
+            String roleQuery = "SELECT role FROM people WHERE id=" + user.getId();
+            ResultSet rs = stmt.executeQuery(roleQuery);
+            if (rs.next()) {
+                String currentRole = rs.getString("role");
+                if (currentRole != null && currentRole.equalsIgnoreCase("admin")) {
+                    // Do not allow modifying admin user
+                    System.out.println("Attempt to modify admin user blocked.");
+                    return false;
+                }
+            }
+
+            // Only update mutable fields; do NOT change role here
+            String sql = "UPDATE people SET name='" + user.getFirstName() + "', lastname='" + user.getLastName() +
+                         "', email='" + user.getEmail() + "', password='" + user.getPassword() +
+                         "' WHERE id=" + user.getId();
+
             int rowsAffected = stmt.executeUpdate(sql);
             return rowsAffected > 0;
         } catch (SQLException e) {
@@ -165,6 +178,12 @@ public class DatabaseUserService implements UserService {
             String role = null;
             if (rs.next()) {
                 role = rs.getString("role");
+            }
+
+            // Prevent deleting admin user
+            if (role != null && role.equalsIgnoreCase("admin")) {
+                System.out.println("Attempt to delete admin user blocked.");
+                return false;
             }
 
             // If student: remove enrollments

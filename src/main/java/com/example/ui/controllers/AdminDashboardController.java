@@ -275,7 +275,6 @@ public class AdminDashboardController {
                 String email = emailField.getText().trim();
                 String password = passwordField.getText();
                 String roleStr = roleCombo.getValue();
-
                 if (firstName.isEmpty() || lastName.isEmpty() || email.isEmpty() || password.isEmpty()) {
                     showAlert(Alert.AlertType.ERROR, "Validation Error", "All fields are required.");
                     return null;
@@ -330,10 +329,7 @@ public class AdminDashboardController {
         TextField firstNameField = new TextField(selectedUser.getFirstName());
         TextField lastNameField = new TextField(selectedUser.getLastName());
         TextField emailField = new TextField(selectedUser.getEmail());
-        ComboBox<String> roleCombo = new ComboBox<>();
-        roleCombo.getItems().addAll("Student", "Teacher", "Admin");
-        roleCombo.setValue(selectedUser.getRole().toString().substring(0, 1) + 
-                          selectedUser.getRole().toString().substring(1).toLowerCase());
+        // Role editing removed: user's role cannot be changed here.
 
         grid.add(new Label("First Name:"), 0, 0);
         grid.add(firstNameField, 1, 0);
@@ -341,8 +337,7 @@ public class AdminDashboardController {
         grid.add(lastNameField, 1, 1);
         grid.add(new Label("Email:"), 0, 2);
         grid.add(emailField, 1, 2);
-        grid.add(new Label("Role:"), 0, 3);
-        grid.add(roleCombo, 1, 3);
+        // Role label removed from edit form.
 
         dialog.getDialogPane().setContent(grid);
 
@@ -351,7 +346,7 @@ public class AdminDashboardController {
                 String firstName = firstNameField.getText().trim();
                 String lastName = lastNameField.getText().trim();
                 String email = emailField.getText().trim();
-                String roleStr = roleCombo.getValue();
+                // Role editing removed; keep existing role
 
                 if (firstName.isEmpty() || lastName.isEmpty() || email.isEmpty()) {
                     showAlert(Alert.AlertType.ERROR, "Validation Error", "All fields are required.");
@@ -366,16 +361,10 @@ public class AdminDashboardController {
                     }
                 }
 
-                User.Role role = switch (roleStr) {
-                    case "Admin" -> User.Role.ADMIN;
-                    case "Teacher" -> User.Role.TEACHER;
-                    default -> User.Role.STUDENT;
-                };
-
                 selectedUser.setFirstName(firstName);
                 selectedUser.setLastName(lastName);
                 selectedUser.setEmail(email);
-                selectedUser.setRole(role);
+                // selectedUser role remains unchanged
 
                 if (userService.updateUser(selectedUser)) {
                     return selectedUser;
@@ -802,7 +791,10 @@ public class AdminDashboardController {
             if (groupService.deleteGroup(selectedGroup.getId())) {
                 showAlert(Alert.AlertType.INFORMATION, "Group Deleted",
                         "Group '" + selectedGroup.getName() + "' has been deleted.");
-                handleRefreshGroups();
+                // Reload full data so quizzes, stats, and groups reflect deletions
+                loadData();
+                // Clear enrolled students view
+                enrolledStudentsTable.setItems(FXCollections.observableArrayList());
             }
         }
     }
@@ -838,15 +830,59 @@ public class AdminDashboardController {
             return;
         }
 
-        // Create selection dialog
-        javafx.scene.control.ChoiceDialog<User> dialog = new javafx.scene.control.ChoiceDialog<>(
-                availableStudents.get(0), availableStudents);
+        // Create a dialog with a ComboBox that displays formatted student names (Full name + email)
+        Dialog<User> dialog = new Dialog<>();
         dialog.setTitle("Enroll Student");
         dialog.setHeaderText("Enroll student in: " + selectedGroup.getName());
-        dialog.setContentText("Select student:");
 
-        // Format the combo box items
-        dialog.getDialogPane().lookupButton(javafx.scene.control.ButtonType.OK).setDisable(false);
+        ButtonType okButtonType = new ButtonType("Enroll", ButtonBar.ButtonData.OK_DONE);
+        dialog.getDialogPane().getButtonTypes().addAll(okButtonType, ButtonType.CANCEL);
+
+        ComboBox<User> combo = new ComboBox<>(FXCollections.observableArrayList(availableStudents));
+        combo.setPrefWidth(400);
+
+        // Show formatted text in the drop-down and selected cell
+        combo.setCellFactory(listView -> new ListCell<>() {
+            @Override
+            protected void updateItem(User item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setText(null);
+                } else {
+                    setText(item.getFullName() + " (" + item.getEmail() + ")");
+                }
+            }
+        });
+        combo.setButtonCell(new ListCell<>() {
+            @Override
+            protected void updateItem(User item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setText(null);
+                } else {
+                    setText(item.getFullName() + " (" + item.getEmail() + ")");
+                }
+            }
+        });
+
+        // Select first available by default
+        combo.getSelectionModel().selectFirst();
+
+        GridPane grid = new GridPane();
+        grid.setHgap(10);
+        grid.setVgap(10);
+        grid.setPadding(new Insets(20, 150, 10, 10));
+        grid.add(new Label("Select student:"), 0, 0);
+        grid.add(combo, 0, 1);
+
+        dialog.getDialogPane().setContent(grid);
+
+        dialog.setResultConverter(dialogButton -> {
+            if (dialogButton == okButtonType) {
+                return combo.getValue();
+            }
+            return null;
+        });
 
         Optional<User> result = dialog.showAndWait();
         result.ifPresent(student -> {

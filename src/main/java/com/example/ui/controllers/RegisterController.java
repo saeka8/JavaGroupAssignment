@@ -17,7 +17,7 @@ public class RegisterController {
     @FXML private TextField emailField;
     @FXML private PasswordField passwordField;
     @FXML private PasswordField confirmPasswordField;
-    @FXML private ComboBox<String> roleComboBox;
+    // Role selection removed: new registrations will always create STUDENT accounts.
     @FXML private Label errorLabel;
     @FXML private Label successLabel;
 
@@ -25,9 +25,7 @@ public class RegisterController {
 
     @FXML
     private void initialize() {
-        // Populate role options
-        roleComboBox.getItems().addAll("Student", "Teacher", "Admin");
-        roleComboBox.setValue("Student");
+        // No role selection in registration UI.
 
         // Clear messages on typing
         firstNameField.textProperty().addListener((obs, old, newVal) -> clearMessages());
@@ -45,7 +43,7 @@ public class RegisterController {
         String email = emailField.getText().trim();
         String password = passwordField.getText();
         String confirmPassword = confirmPasswordField.getText();
-        String roleStr = roleComboBox.getValue();
+        // Registrations always create STUDENT role
 
         // Validate inputs
         if (firstName.isEmpty() || lastName.isEmpty() || email.isEmpty() || 
@@ -74,15 +72,8 @@ public class RegisterController {
             return;
         }
 
-        // Create user
-        User.Role role;
-        if ("Teacher".equals(roleStr)) {
-            role = User.Role.TEACHER;
-        } else if ("Admin".equals(roleStr)) {
-            role = User.Role.ADMIN;
-        } else {
-            role = User.Role.STUDENT;
-        }
+        // Create user (registrations always create STUDENT role)
+        User.Role role = User.Role.STUDENT;
         User newUser = User.createUser(email, password, firstName, lastName, role);
 
         if (authService.register(newUser)) {
@@ -121,6 +112,5 @@ public class RegisterController {
         emailField.clear();
         passwordField.clear();
         confirmPasswordField.clear();
-        roleComboBox.setValue("Student");
     }
 }

@@ -15,64 +15,8 @@ import java.sql.SQLException;
 public class PopulateTestData {
 
     public static void main(String[] args) {
-        System.out.println("🔄 Starting to populate database with corrected scoring...");
-        System.out.println("   (All questions now worth 1 point each)\n");
-
-        try {
-            Connection conn = DatabaseManager.connectWithDatabase();
-            if (conn == null) {
-                System.err.println("❌ Failed to connect to database!");
-                return;
-            }
-
-            // Create all tables first
-            DatabaseManager.createAllTables(conn);
-
-            System.out.println("=== Creating 18 Users ===");
-            createUsers(conn);
-
-            System.out.println("\n=== Creating 8 Groups ===");
-            createGroups(conn);
-
-            System.out.println("\n=== Creating 22 Student Enrollments ===");
-            enrollStudents(conn);
-
-            System.out.println("\n=== Creating 12 Quizzes ===");
-            createQuizzes(conn);
-
-            System.out.println("\n=== Adding 18 Questions (all 1 point each) ===");
-            addQuestions(conn);
-
-            System.out.println("\n✅ Database population complete!");
-            System.out.println("\n📝 Login Credentials:");
-            System.out.println("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
-            System.out.println("Admin:");
-            System.out.println("  admin@quiz.com / admin123");
-            System.out.println("\nTeachers:");
-            System.out.println("  alice.teacher@quiz.com / teacher123");
-            System.out.println("  saeka@gmail.com / password");
-            System.out.println("  simonida@gmail.com / password");
-            System.out.println("  jdoe@gmail.com / password");
-            System.out.println("\nStudents:");
-            System.out.println("  charlie.student@quiz.com / student123");
-            System.out.println("  diana.student@quiz.com / student123");
-            System.out.println("  eve.student@quiz.com / student123");
-            System.out.println("  frank.student@quiz.com / student123");
-            System.out.println("  grace.student@quiz.com / student123");
-            System.out.println("  henry.student@quiz.com / student123");
-            System.out.println("  sofia@gmail.com / password");
-            System.out.println("  nathan@gmail.com / password");
-            System.out.println("  silvia@gmail.com / password");
-            System.out.println("  oskar / password");
-            System.out.println("  paula@gmail.com / password");
-            System.out.println("  sjekic@gmail.com / password");
-            System.out.println("  jekic@gmail.com / password");
-            System.out.println("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
-
-        } catch (SQLException e) {
-            System.err.println("❌ Error populating database: " + e.getMessage());
-            e.printStackTrace();
-        }
+        // Population disabled. This utility's population routine has been removed per project configuration.
+        System.out.println("PopulateTestData.main: population disabled.");
     }
 
     private static void createUsers(Connection conn) throws SQLException {

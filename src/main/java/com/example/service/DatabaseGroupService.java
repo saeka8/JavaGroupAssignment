@@ -131,13 +131,41 @@ public class DatabaseGroupService implements GroupService {
 
     @Override
     public boolean deleteGroup(int id) {
-        // First delete all enrollments for this group
+        // Remove enrollments, then remove quizzes and related data (scores, quizQuestion links, mcq), then delete the group
         String deleteEnrollments = "DELETE FROM enrollment WHERE group_id=" + id;
-        // Then delete the group
+
+        // Delete scores for quizzes that belong to this group
+        String deleteScoresForGroupQuizzes = "DELETE FROM scores WHERE quiz_id IN (SELECT id FROM quiz WHERE group_id=" + id + ")";
+
+        // Delete mcq entries that are linked to quizzes in this group
+        String deleteMcqForGroup = "DELETE FROM mcq WHERE id IN (SELECT question_id FROM quizQuestion WHERE quiz_id IN (SELECT id FROM quiz WHERE group_id=" + id + "))";
+
+        // Delete links between quizzes and questions for this group's quizzes
+        String deleteQuizQuestionLinks = "DELETE FROM quizQuestion WHERE quiz_id IN (SELECT id FROM quiz WHERE group_id=" + id + ")";
+
+        // Delete quizzes that belong to this group
+        String deleteQuizzes = "DELETE FROM quiz WHERE group_id=" + id;
+
+        // Finally delete the group itself
         String deleteGroup = "DELETE FROM groups WHERE id=" + id;
 
         try (Statement stmt = conn.createStatement()) {
+            // Remove enrollments
             stmt.executeUpdate(deleteEnrollments);
+
+            // Remove attempts/scores related to quizzes
+            stmt.executeUpdate(deleteScoresForGroupQuizzes);
+
+            // Remove mcq questions that are only used by these quizzes
+            stmt.executeUpdate(deleteMcqForGroup);
+
+            // Remove linking rows
+            stmt.executeUpdate(deleteQuizQuestionLinks);
+
+            // Remove quizzes
+            stmt.executeUpdate(deleteQuizzes);
+
+            // Remove group
             int rowsAffected = stmt.executeUpdate(deleteGroup);
             return rowsAffected > 0;
         } catch (SQLException e) {

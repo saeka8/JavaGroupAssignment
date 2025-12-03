@@ -70,12 +70,7 @@
                                style="-fx-background-radius: 5; -fx-border-radius: 5; -fx-border-color: #dee2e6; -fx-font-size: 13px;"/>
             </VBox>
             
-            <!-- Role Selection -->
-            <VBox spacing="3">
-                <Label text="I am a..." style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #2c3e50;"/>
-                <ComboBox fx:id="roleComboBox" prefHeight="38" maxWidth="Infinity"
-                          style="-fx-background-radius: 5; -fx-border-radius: 5; -fx-font-size: 13px;"/>
-            </VBox>
+            <!-- Role Selection removed: registrations create Student accounts -->
             
             <!-- Error Message -->
             <Label fx:id="errorLabel" text="" visible="false" wrapText="true"

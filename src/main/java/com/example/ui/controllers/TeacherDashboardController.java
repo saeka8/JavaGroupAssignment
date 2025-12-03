@@ -188,6 +188,17 @@ public class TeacherDashboardController {
                 clearResultsFilter();
             }
         });
+
+        // If the underlying groups list changes (e.g. group deleted elsewhere), clear selection if it no longer exists
+        groupsTable.getItems().addListener((javafx.collections.ListChangeListener.Change<? extends Group> ch) -> {
+            if (selectedGroup != null && !groupsTable.getItems().contains(selectedGroup)) {
+                groupsTable.getSelectionModel().clearSelection();
+                selectedGroup = null;
+                quizzesTable.setItems(FXCollections.observableArrayList());
+                studentsTable.setItems(FXCollections.observableArrayList());
+                clearResultsFilter();
+            }
+        });
     }
 
     private void setupQuizzesTable() {
@@ -268,6 +279,15 @@ public class TeacherDashboardController {
         quizzesTable.getSelectionModel().selectedItemProperty().addListener((obs, oldSelection, newSelection) -> {
             selectedQuiz = newSelection;
             updateResultsFilter();
+        });
+
+        // If the underlying quizzes list changes (e.g. quizzes removed by group deletion), clear selection if it no longer exists
+        quizzesTable.getItems().addListener((javafx.collections.ListChangeListener.Change<? extends Quiz> ch) -> {
+            if (selectedQuiz != null && !quizzesTable.getItems().contains(selectedQuiz)) {
+                quizzesTable.getSelectionModel().clearSelection();
+                selectedQuiz = null;
+                clearResultsFilter();
+            }
         });
     }
 
@@ -521,13 +541,17 @@ public class TeacherDashboardController {
     }
 
     private void updateResultsFilter() {
-        if (selectedQuiz == null || selectedStudent == null) {
+        // Use current selections from the tables to avoid stale references
+        Quiz currentSelectedQuiz = quizzesTable.getSelectionModel().getSelectedItem();
+        User currentSelectedStudent = studentsTable.getSelectionModel().getSelectedItem();
+
+        if (currentSelectedQuiz == null || currentSelectedStudent == null) {
             clearResultsFilter();
             return;
         }
 
         // Load attempts for the specific student and quiz
-        List<QuizAttempt> attempts = attemptService.getStudentAttemptsForQuiz(selectedStudent.getId(), selectedQuiz.getId());
+        List<QuizAttempt> attempts = attemptService.getStudentAttemptsForQuiz(currentSelectedStudent.getId(), currentSelectedQuiz.getId());
 
         // Sort by attempt number (most recent first)
         attempts.sort((a, b) -> Integer.compare(b.getAttemptNumber(), a.getAttemptNumber()));
@@ -535,7 +559,7 @@ public class TeacherDashboardController {
         resultsTable.setItems(FXCollections.observableArrayList(attempts));
 
         resultsFilterLabel.setText(String.format("📊 Showing attempts for: %s - %s",
-                selectedStudent.getFullName(), selectedQuiz.getTitle()));
+            currentSelectedStudent.getFullName(), currentSelectedQuiz.getTitle()));
     }
 
     private void clearResultsFilter() {
@@ -617,6 +641,12 @@ public class TeacherDashboardController {
         if (selectedQuiz == null) {
             showAlert(Alert.AlertType.WARNING, "No Quiz Selected",
                     "Please select a quiz from the table to assign.");
+            return;
+        }
+
+        if (!isCurrentUserAuthor(selectedQuiz)) {
+            showAlert(Alert.AlertType.ERROR, "Permission Denied",
+                    "You are not the author of this quiz and cannot assign it.");
             return;
         }
 
@@ -703,7 +733,11 @@ public class TeacherDashboardController {
                     "Please select a quiz from the table to delete.");
             return;
         }
-
+        if (!isCurrentUserAuthor(selectedQuiz)) {
+            showAlert(Alert.AlertType.ERROR, "Permission Denied",
+                    "You are not the author of this quiz and cannot delete it.");
+            return;
+        }
         Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
         confirm.setTitle("Delete Quiz");
         confirm.setHeaderText("Are you sure you want to delete this quiz?");
@@ -729,6 +763,12 @@ public class TeacherDashboardController {
         if (selectedQuiz == null) {
             showAlert(Alert.AlertType.WARNING, "No Quiz Selected",
                     "Please select a quiz from the table to edit.");
+            return;
+        }
+
+        if (!isCurrentUserAuthor(selectedQuiz)) {
+            showAlert(Alert.AlertType.ERROR, "Permission Denied",
+                    "You are not the author of this quiz and cannot edit it.");
             return;
         }
 
@@ -790,6 +830,12 @@ public class TeacherDashboardController {
         if (selectedQuiz == null) {
             showAlert(Alert.AlertType.WARNING, "No Quiz Selected",
                     "Please select a quiz from the table to manage questions.");
+            return;
+        }
+
+        if (!isCurrentUserAuthor(selectedQuiz)) {
+            showAlert(Alert.AlertType.ERROR, "Permission Denied",
+                    "You are not the author of this quiz and cannot manage its questions.");
             return;
         }
 
@@ -994,6 +1040,12 @@ public class TeacherDashboardController {
             return;
         }
 
+        if (!isCurrentUserAuthor(selectedQuiz)) {
+            showAlert(Alert.AlertType.ERROR, "Permission Denied",
+                    "You are not the author of this quiz and cannot add questions.");
+            return;
+        }
+
         // Show dialog for adding multiple choice questions
         Dialog<Boolean> dialog = new Dialog<>();
         dialog.setTitle("Add Question to Quiz");
@@ -1131,5 +1183,14 @@ public class TeacherDashboardController {
         alert.setHeaderText(null);
         alert.setContentText(message);
         alert.showAndWait();
+    }
+
+    // Helper: check if current user is the author of a quiz or is admin
+    private boolean isCurrentUserAuthor(Quiz quiz) {
+        if (currentUser == null || quiz == null)
+            return false;
+        if (currentUser.getRole() == User.Role.ADMIN)
+            return true;
+        return quiz.getTeacherId() == currentUser.getId();
     }
 }

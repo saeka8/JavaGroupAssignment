@@ -200,7 +200,7 @@
                                     <TableColumn fx:id="enrolledStudentIdColumn" text="ID" prefWidth="60"/>
                                     <TableColumn fx:id="enrolledStudentNameColumn" text="Student Name" prefWidth="180"/>
                                     <TableColumn fx:id="enrolledStudentEmailColumn" text="Email" prefWidth="220"/>
-                                    <TableColumn fx:id="enrolledStudentAvgColumn" text="Group Average" prefWidth="140"/>
+                                    <TableColumn fx:id="enrolledStudentAvgColumn" text="Grade" prefWidth="140"/>
                                 </columns>
                                 <placeholder>
                                     <Label text="Select a group from 'Group Management' above to view enrolled students." style="-fx-text-fill: #6c757d;"/>
@@ -223,7 +223,7 @@
                                 <columns>
                                     <TableColumn fx:id="quizIdColumn" text="ID" prefWidth="60"/>
                                     <TableColumn fx:id="quizTitleColumn" text="Quiz Title" prefWidth="250"/>
-                                    <TableColumn fx:id="quizTeacherColumn" text="Created By" prefWidth="180"/>
+                                    <TableColumn fx:id="quizTeacherColumn" text="Owned By" prefWidth="180"/>
                                     <TableColumn fx:id="quizQuestionsColumn" text="Questions" prefWidth="100"/>
                                 </columns>
                                 <placeholder>

@@ -87,12 +87,12 @@
                     </VBox>
 
                     <!-- Average Score Card -->
-                    <VBox alignment="CENTER" spacing="5" HBox.hgrow="ALWAYS"
-                          style="-fx-background-color: white; -fx-background-radius: 10; -fx-padding: 20; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 10, 0, 0, 3);">
-                        <Label text="🎯" style="-fx-font-size: 24px;"/>
-                        <Label fx:id="averageScoreLabel" text="N/A" style="-fx-font-size: 32px; -fx-font-weight: bold; -fx-text-fill: #28a745;"/>
-                        <Label text="Group Average" style="-fx-font-size: 12px; -fx-text-fill: #6c757d;"/>
-                    </VBox>
+                                                <VBox alignment="CENTER" spacing="5" HBox.hgrow="ALWAYS"
+                                                    style="-fx-background-color: white; -fx-background-radius: 10; -fx-padding: 20; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 10, 0, 0, 3);">
+                                                <Label text="🎯" style="-fx-font-size: 24px;"/>
+                                                <Label fx:id="averageScoreLabel" text="N/A" style="-fx-font-size: 32px; -fx-font-weight: bold; -fx-text-fill: #28a745;"/>
+                                                <Label text="Grade" style="-fx-font-size: 12px; -fx-text-fill: #6c757d;"/>
+                                        </VBox>
                 </HBox>
 
                 <!-- Tabs -->
@@ -159,7 +159,7 @@
                                 <columns>
                                     <TableColumn fx:id="studentNameColumn" text="Name" prefWidth="200"/>
                                     <TableColumn fx:id="studentEmailColumn" text="Email" prefWidth="250"/>
-                                    <TableColumn fx:id="studentGroupAvgColumn" text="Group Average" prefWidth="140"/>
+                                    <TableColumn fx:id="studentGroupAvgColumn" text="Grade" prefWidth="140"/>
                                 </columns>
                                 <placeholder>
                                     <Label text="Select a group above to view its students."
