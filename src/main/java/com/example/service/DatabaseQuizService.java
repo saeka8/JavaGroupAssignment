@@ -141,6 +141,27 @@ public class DatabaseQuizService implements QuizService {
     }
 
     @Override
+    public List<Quiz> getQuizzesByGroup(int groupId) {
+        List<Quiz> quizzes = new ArrayList<>();
+        String sql = "SELECT q.id, q.quiz_name, q.description, q.group_id, g.teacher_id " +
+                     "FROM quiz q LEFT JOIN groups g ON q.group_id = g.id WHERE q.group_id=" + groupId;
+
+        try (Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+
+            while (rs.next()) {
+                Quiz quiz = extractQuizFromResultSet(rs);
+                quiz.setQuestions(getQuestionsByQuiz(quiz.getId()));
+                quizzes.add(quiz);
+            }
+        } catch (SQLException e) {
+            System.err.println("Error getting quizzes by group: " + e.getMessage());
+        }
+
+        return quizzes;
+    }
+
+    @Override
     public List<Quiz> searchQuizzes(String query) {
         List<Quiz> quizzes = new ArrayList<>();
         String sql = "SELECT q.id, q.quiz_name, q.description, q.group_id, g.teacher_id " +
@@ -385,6 +406,25 @@ public class DatabaseQuizService implements QuizService {
         teacher.ifPresent(t -> quiz.setTeacherName(t.getFirstName() + " " + t.getLastName()));
 
         return quiz;
+    }
+
+    @Override
+    public boolean addQuestionToQuiz(int quizId, String question, String optionA, String optionB,
+                                     String optionC, String optionD, char correctOption, int score) {
+        try {
+            // Insert the MCQ
+            int questionId = InsertIntoDatabase.insertMcq(
+                conn, question, optionA, optionB, optionC, optionD, correctOption, score
+            );
+
+            // Link question to quiz
+            InsertIntoDatabase.insertQuizQuestion(conn, quizId, questionId);
+
+            return true;
+        } catch (SQLException e) {
+            System.err.println("Error adding question to quiz: " + e.getMessage());
+            return false;
+        }
     }
 
     private Question extractQuestionFromResultSet(ResultSet rs) throws SQLException {

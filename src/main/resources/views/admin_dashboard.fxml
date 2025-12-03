@@ -141,12 +141,85 @@
                         </VBox>
                     </Tab>
 
+                    <!-- Group Management Tab -->
+                    <Tab text="  Group Management  ">
+                        <VBox spacing="15" style="-fx-background-color: white; -fx-padding: 20;">
+
+                            <!-- Action Bar -->
+                            <HBox spacing="15" alignment="CENTER_LEFT">
+                                <Label text="Group Management" style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #2c3e50;"/>
+
+                                <Region HBox.hgrow="ALWAYS"/>
+
+                                <Button text="↻ Refresh" onAction="#handleRefreshGroups"
+                                        style="-fx-background-color: transparent; -fx-text-fill: #6c757d; -fx-border-color: #dee2e6; -fx-border-radius: 5; -fx-background-radius: 5; -fx-padding: 8 14; -fx-cursor: hand;"/>
+
+                                <Button text="🗑 Delete Group" onAction="#handleDeleteGroup"
+                                        style="-fx-background-color: #dc3545; -fx-text-fill: white; -fx-padding: 8 14; -fx-background-radius: 5; -fx-cursor: hand;"/>
+
+                                <Button text="+ Create Group" onAction="#handleCreateGroup"
+                                        style="-fx-background-color: #28a745; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 10 18; -fx-background-radius: 5; -fx-cursor: hand;"/>
+                            </HBox>
+
+                            <!-- Groups Table -->
+                            <TableView fx:id="groupsTable" prefHeight="200"
+                                       style="-fx-background-color: white; -fx-border-color: #dee2e6; -fx-border-radius: 5;">
+                                <columns>
+                                    <TableColumn fx:id="groupIdColumn" text="ID" prefWidth="60"/>
+                                    <TableColumn fx:id="groupNameColumn" text="Group Name" prefWidth="250"/>
+                                    <TableColumn fx:id="groupTeacherColumn" text="Teacher" prefWidth="200"/>
+                                    <TableColumn fx:id="groupStudentCountColumn" text="Students" prefWidth="100"/>
+                                </columns>
+                                <placeholder>
+                                    <Label text="No groups created yet." style="-fx-text-fill: #6c757d;"/>
+                                </placeholder>
+                            </TableView>
+
+                            <Separator/>
+
+                            <!-- Enrollment Management -->
+                            <Label text="Enrollment Management" style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #2c3e50;"/>
+
+                            <HBox spacing="15" alignment="CENTER_LEFT">
+                                <ComboBox fx:id="enrollmentGroupCombo" promptText="Select Group" prefWidth="200" prefHeight="38"
+                                          style="-fx-background-radius: 5; -fx-border-radius: 5;"/>
+
+                                <ComboBox fx:id="enrollmentStudentCombo" promptText="Select Student" prefWidth="250" prefHeight="38"
+                                          style="-fx-background-radius: 5; -fx-border-radius: 5;"/>
+
+                                <Button text="+ Enroll Student" onAction="#handleEnrollStudent"
+                                        style="-fx-background-color: #5C80BC; -fx-text-fill: white; -fx-padding: 10 18; -fx-background-radius: 5; -fx-cursor: hand;"/>
+
+                                <Region HBox.hgrow="ALWAYS"/>
+
+                                <Button text="🗑 Remove Selected" onAction="#handleRemoveStudent"
+                                        style="-fx-background-color: #dc3545; -fx-text-fill: white; -fx-padding: 10 18; -fx-background-radius: 5; -fx-cursor: hand;"/>
+                            </HBox>
+
+                            <!-- Enrolled Students Table -->
+                            <TableView fx:id="enrolledStudentsTable" prefHeight="200" VBox.vgrow="ALWAYS"
+                                       style="-fx-background-color: white; -fx-border-color: #dee2e6; -fx-border-radius: 5;">
+                                <columns>
+                                    <TableColumn fx:id="enrolledStudentIdColumn" text="ID" prefWidth="60"/>
+                                    <TableColumn fx:id="enrolledStudentNameColumn" text="Student Name" prefWidth="200"/>
+                                    <TableColumn fx:id="enrolledStudentEmailColumn" text="Email" prefWidth="250"/>
+                                </columns>
+                                <placeholder>
+                                    <Label text="Select a group to view enrolled students." style="-fx-text-fill: #6c757d;"/>
+                                </placeholder>
+                            </TableView>
+
+                            <Label text="💡 Select a group from the table above to manage its enrollments below."
+                                   style="-fx-font-size: 12px; -fx-text-fill: #6c757d;"/>
+                        </VBox>
+                    </Tab>
+
                     <!-- Quizzes Overview Tab -->
                     <Tab text="  All Quizzes  ">
                         <VBox spacing="15" style="-fx-background-color: white; -fx-padding: 20;">
-                            
+
                             <Label text="Platform Quizzes Overview" style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #2c3e50;"/>
-                            
+
                             <Separator/>
 
                             <!-- Quizzes Table -->
@@ -159,7 +232,7 @@
                                     <TableColumn fx:id="quizQuestionsColumn" text="Questions" prefWidth="100"/>
                                 </columns>
                                 <placeholder>
-                                    <Label text="No quizzes in the platform yet." 
+                                    <Label text="No quizzes in the platform yet."
                                            style="-fx-text-fill: #6c757d;"/>
                                 </placeholder>
                             </TableView>

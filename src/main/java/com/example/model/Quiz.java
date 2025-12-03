@@ -14,6 +14,7 @@ public class Quiz {
     private String title;
     private String description;
     private int teacherId;
+    private int groupId;  // Group this quiz belongs to
     private String teacherName; // For display purposes
     private LocalDateTime createdAt;
     private boolean isActive;
@@ -65,11 +66,19 @@ public class Quiz {
     public void setTeacherId(int teacherId) {
         this.teacherId = teacherId;
     }
-    
+
+    public int getGroupId() {
+        return groupId;
+    }
+
+    public void setGroupId(int groupId) {
+        this.groupId = groupId;
+    }
+
     public String getTeacherName() {
         return teacherName;
     }
-    
+
     public void setTeacherName(String teacherName) {
         this.teacherName = teacherName;
     }

@@ -120,7 +120,7 @@ public class DatabaseUserService implements UserService {
     public User createUser(User user) {
         try {
             String roleStr = user.getRole().toString().toLowerCase();
-            InsertIntoDatabase.insertPeople(
+            int userId = InsertIntoDatabase.insertPeople(
                 conn,
                 user.getFirstName(),
                 user.getLastName(),
@@ -129,8 +129,9 @@ public class DatabaseUserService implements UserService {
                 roleStr
             );
 
-            // Get the created user with ID
-            return getUserByEmail(user.getEmail()).orElse(user);
+            // Return user with the generated ID
+            return new User(userId, user.getEmail(), user.getPassword(),
+                          user.getFirstName(), user.getLastName(), user.getRole());
         } catch (SQLException e) {
             System.err.println("Error creating user: " + e.getMessage());
             return user;

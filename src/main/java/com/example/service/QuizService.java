@@ -45,7 +45,12 @@ public interface QuizService {
      * Get quizzes created by a specific teacher.
      */
     List<Quiz> getQuizzesByTeacher(int teacherId);
-    
+
+    /**
+     * Get quizzes for a specific group.
+     */
+    List<Quiz> getQuizzesByGroup(int groupId);
+
     /**
      * Search quizzes by title.
      */
@@ -72,7 +77,13 @@ public interface QuizService {
      * Get all questions for a quiz.
      */
     List<Question> getQuestionsByQuiz(int quizId);
-    
+
+    /**
+     * Add a multiple choice question to a quiz.
+     */
+    boolean addQuestionToQuiz(int quizId, String question, String optionA, String optionB,
+                             String optionC, String optionD, char correctOption, int score);
+
     // ========== Assignments ==========
     
     /**

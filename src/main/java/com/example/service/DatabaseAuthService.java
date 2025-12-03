@@ -66,8 +66,8 @@ public class DatabaseAuthService implements AuthService {
             // Convert role enum to string
             String roleStr = user.getRole().toString().toLowerCase();
 
-            // Insert into database
-            InsertIntoDatabase.insertPeople(
+            // Insert into database and get the generated ID
+            int userId = InsertIntoDatabase.insertPeople(
                 conn,
                 user.getFirstName(),
                 user.getLastName(),

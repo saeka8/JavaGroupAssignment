@@ -174,4 +174,17 @@ public class RetrieveFromDatabase {
         }
         return studentScores;
     }
+
+    
+    // Retrieve user ID by email
+    public static int getUserIdByEmail(Connection conn, String email) throws SQLException {
+        String sql = "SELECT id FROM people WHERE email='" + email + "'";
+        try (Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+            if (rs.next()) {
+                return rs.getInt("id");
+            }
+        }
+        throw new SQLException("User not found with email: " + email);
+    }
 }

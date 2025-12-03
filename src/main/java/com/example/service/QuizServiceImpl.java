@@ -133,6 +133,12 @@ public class QuizServiceImpl implements QuizService {
     }
 
     @Override
+    public List<Quiz> getQuizzesByGroup(int groupId) {
+        // Placeholder - not implemented in mock service
+        throw new UnsupportedOperationException("DAO not implemented yet");
+    }
+
+    @Override
     public List<Quiz> searchQuizzes(String query) {
         if (query == null || query.trim().isEmpty()) {
             return getAllQuizzes();
@@ -396,6 +402,13 @@ public class QuizServiceImpl implements QuizService {
         if (correctAnswer != 'A' && correctAnswer != 'B' && correctAnswer != 'C' && correctAnswer != 'D') {
             throw new IllegalArgumentException("Correct answer must be A, B, C, or D");
         }
+    }
+
+    @Override
+    public boolean addQuestionToQuiz(int quizId, String question, String optionA, String optionB,
+                                     String optionC, String optionD, char correctOption, int score) {
+        // Placeholder - not implemented in mock service
+        throw new UnsupportedOperationException("DAO not implemented yet");
     }
 
     /**

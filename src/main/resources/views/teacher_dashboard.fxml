@@ -48,6 +48,26 @@
                 <!-- Page Title -->
                 <Label text="Teacher Dashboard" style="-fx-font-size: 26px; -fx-font-weight: bold; -fx-text-fill: #2c3e50;"/>
 
+                <!-- Group Selection Section -->
+                <VBox spacing="15" style="-fx-background-color: white; -fx-background-radius: 10; -fx-padding: 20; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 10, 0, 0, 3);">
+                    <Label text="📚 My Groups" style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #2c3e50;"/>
+
+                    <TableView fx:id="groupsTable" prefHeight="150"
+                               style="-fx-background-color: white; -fx-border-color: #dee2e6; -fx-border-radius: 5;">
+                        <columns>
+                            <TableColumn fx:id="groupNameColumn" text="Group Name" prefWidth="250"/>
+                            <TableColumn fx:id="groupStudentsColumn" text="Students" prefWidth="100"/>
+                            <TableColumn fx:id="groupQuizzesColumn" text="Quizzes" prefWidth="100"/>
+                        </columns>
+                        <placeholder>
+                            <Label text="No groups assigned. Contact your admin to create groups for you." style="-fx-text-fill: #6c757d;"/>
+                        </placeholder>
+                    </TableView>
+
+                    <Label fx:id="selectedGroupLabel" text="💡 Select a group to manage its quizzes"
+                           style="-fx-font-size: 12px; -fx-text-fill: #6c757d;"/>
+                </VBox>
+
                 <!-- Stats Cards Row -->
                 <HBox spacing="20">
                     <!-- My Quizzes Card -->
@@ -55,7 +75,7 @@
                           style="-fx-background-color: white; -fx-background-radius: 10; -fx-padding: 20; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 10, 0, 0, 3);">
                         <Label text="📝" style="-fx-font-size: 24px;"/>
                         <Label fx:id="myQuizzesCount" text="0" style="-fx-font-size: 32px; -fx-font-weight: bold; -fx-text-fill: #2B3A67;"/>
-                        <Label text="My Quizzes" style="-fx-font-size: 12px; -fx-text-fill: #6c757d;"/>
+                        <Label text="Group Quizzes" style="-fx-font-size: 12px; -fx-text-fill: #6c757d;"/>
                     </VBox>
 
                     <!-- Total Attempts Card -->
@@ -71,7 +91,7 @@
                           style="-fx-background-color: white; -fx-background-radius: 10; -fx-padding: 20; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 10, 0, 0, 3);">
                         <Label text="🎯" style="-fx-font-size: 24px;"/>
                         <Label fx:id="averageScoreLabel" text="N/A" style="-fx-font-size: 32px; -fx-font-weight: bold; -fx-text-fill: #28a745;"/>
-                        <Label text="Class Average" style="-fx-font-size: 12px; -fx-text-fill: #6c757d;"/>
+                        <Label text="Group Average" style="-fx-font-size: 12px; -fx-text-fill: #6c757d;"/>
                     </VBox>
                 </HBox>
 
@@ -86,18 +106,18 @@
                             <HBox spacing="15" alignment="CENTER_LEFT">
                                 <TextField fx:id="quizSearchField" promptText="🔍 Search quizzes..." prefWidth="280" prefHeight="38"
                                            style="-fx-background-radius: 5; -fx-border-radius: 5; -fx-border-color: #dee2e6;"/>
-                                
+
                                 <Region HBox.hgrow="ALWAYS"/>
-                                
+
                                 <Button text="↻ Refresh" onAction="#handleRefresh"
                                         style="-fx-background-color: transparent; -fx-text-fill: #6c757d; -fx-border-color: #dee2e6; -fx-border-radius: 5; -fx-background-radius: 5; -fx-padding: 8 14; -fx-cursor: hand;"/>
-                                
+
+                                <Button text="❓ Add Questions" onAction="#handleAddQuestions"
+                                        style="-fx-background-color: #ffc107; -fx-text-fill: white; -fx-padding: 8 14; -fx-background-radius: 5; -fx-cursor: hand;"/>
+
                                 <Button text="🗑 Delete" onAction="#handleDeleteQuiz"
                                         style="-fx-background-color: #dc3545; -fx-text-fill: white; -fx-padding: 8 14; -fx-background-radius: 5; -fx-cursor: hand;"/>
-                                
-                                <Button text="📤 Assign" onAction="#handleAssignQuiz"
-                                        style="-fx-background-color: #5C80BC; -fx-text-fill: white; -fx-padding: 8 14; -fx-background-radius: 5; -fx-cursor: hand;"/>
-                                
+
                                 <Button text="+ New Quiz" onAction="#handleCreateQuiz"
                                         style="-fx-background-color: #28a745; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 10 20; -fx-background-radius: 5; -fx-cursor: hand;"/>
                             </HBox>
