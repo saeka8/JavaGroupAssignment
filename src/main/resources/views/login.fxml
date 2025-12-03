@@ -57,16 +57,4 @@
         </VBox>
         
     </VBox>
-    
-    <!-- Test Credentials Info -->
-    <VBox alignment="CENTER" spacing="3">
-        <padding>
-            <Insets top="20"/>
-        </padding>
-    <Label text="Test Credentials:" style="-fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: #6c757d;"/>
-    <Label text="Admin: admin@quiz.com / admin123" style="-fx-font-size: 10px; -fx-text-fill: #adb5bd;"/>
-    <Label text="Teacher 1: alice.teacher@quiz.com / teacher123" style="-fx-font-size: 10px; -fx-text-fill: #adb5bd;"/>
-    <Label text="Student 1: charlie.student@quiz.com / student123" style="-fx-font-size: 10px; -fx-text-fill: #adb5bd;"/>
-    </VBox>
-    
 </VBox>
